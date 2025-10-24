@@ -3,7 +3,9 @@ import { HttpClient, API_CONFIG } from './config';
 
 class UserService {
   async getCurrentUser(userId: string): Promise<User> {
-    return HttpClient.get<User>(`${API_CONFIG.ENDPOINTS.USER}/${userId}`);
+    // Add timestamp to force fresh data
+    const timestamp = Date.now();
+    return HttpClient.get<User>(`${API_CONFIG.ENDPOINTS.USER}/${userId}?t=${timestamp}`);
   }
 
   async updateUser(userId: string, updates: Partial<User>): Promise<User> {

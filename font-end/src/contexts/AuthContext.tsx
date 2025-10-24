@@ -25,6 +25,7 @@ interface AuthContextType {
   clearPendingScreen: () => void;
   updateUserAvatar: (avatarUrl: string) => void;
   updateUserInfo: (updatedInfo: Partial<User>) => void;
+  refreshUserData: () => void;
   userReviews: Review[];
   addReview: (review: Review) => void;
 }
@@ -62,9 +63,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (await authService.isAuthenticated()) {
         const currentUser = await authService.getCurrentUser();
         if (currentUser) {
-          setUser(currentUser);
+          console.log('🔄 Current user from local:', currentUser);
+          console.log('🔄 User ID:', currentUser.id);
+          console.log('🔄 Fetching fresh user data from server...');
+          // Always fetch fresh user data from server to get latest avatar
+          const freshUserData = await userService.getCurrentUser(currentUser.id);
+          console.log('✅ Fresh user data from server:', freshUserData);
+          console.log('✅ Avatar comparison - Local:', currentUser.avatar, 'Server:', freshUserData.avatar);
+          setUser(freshUserData);
           // Load user data
-          await loadUserData(currentUser.id);
+          await loadUserData(freshUserData.id);
         }
       }
     } catch (error) {
@@ -260,13 +268,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const updateUserAvatar = async (avatarUrl: string) => {
     if (user) {
-      setUser(prev => prev ? { ...prev, avatar: avatarUrl } : null);
+      let finalAvatarUrl = avatarUrl;
+      
+      // If it's a local file path, convert to base64
+      if (avatarUrl.startsWith('file://')) {
+        try {
+          console.log('🔄 Converting local file to base64...');
+          const response = await fetch(avatarUrl);
+          const blob = await response.blob();
+          const base64 = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+          finalAvatarUrl = base64;
+          console.log('✅ Converted to base64, length:', base64.length);
+        } catch (error) {
+          console.error('Failed to convert file to base64:', error);
+          return;
+        }
+      }
+      
+      setUser(prev => prev ? { ...prev, avatar: finalAvatarUrl } : null);
       
       // Update backend
       try {
-        await userService.updateUser(user.id, { avatar: avatarUrl });
+        await userService.updateUser(user.id, { avatar: finalAvatarUrl });
+        console.log('✅ Avatar updated on backend:', finalAvatarUrl.substring(0, 50) + '...');
       } catch (error) {
         console.error('Failed to update avatar on backend:', error);
+      }
+    }
+  };
+
+  const refreshUserData = async () => {
+    if (user) {
+      try {
+        console.log('🔄 Force refreshing user data...');
+        const freshUserData = await userService.getCurrentUser(user.id);
+        console.log('✅ Refreshed user data:', freshUserData);
+        setUser(freshUserData);
+      } catch (error) {
+        console.error('Failed to refresh user data:', error);
       }
     }
   };
@@ -309,6 +352,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     clearPendingScreen,
     updateUserAvatar,
     updateUserInfo,
+    refreshUserData,
     userReviews,
     addReview,
   };

@@ -147,7 +147,6 @@ const BookingsScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Đặt chỗ của tôi</Text>
-        <Text style={styles.subtitle}>{bookings.length} chuyến đi</Text>
       </View>
 
       {/* Tabs */}

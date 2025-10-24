@@ -81,6 +81,7 @@ export interface SearchFilters {
 }
 
 export interface RootStackParamList {
+  [key: string]: undefined | { destination: Destination } | { booking: Booking } | { destinationId: string } | { destination: Destination; services: string[] };
   Loading: undefined;
   Login: undefined;
   Register: undefined;
