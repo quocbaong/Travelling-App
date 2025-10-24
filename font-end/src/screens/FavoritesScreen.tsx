@@ -55,7 +55,6 @@ const FavoritesScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Yêu thích</Text>
-        <Text style={styles.subtitle}>{userFavorites.length} điểm đến</Text>
       </View>
 
       <ScrollView

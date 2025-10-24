@@ -39,14 +39,23 @@ const PersonalInfoScreen = () => {
 
   useEffect(() => {
     if (user) {
+      console.log('🔍 PersonalInfoScreen - User data:', user);
+      console.log('🔍 PersonalInfoScreen - User name:', user.name);
+      console.log('🔍 PersonalInfoScreen - User email:', user.email);
+      
       setFormData({
-        name: user.name || '',
+        name: user.name || user.fullName || user.firstName || '',
         email: user.email || '',
         phone: user.phone || '',
         dateOfBirth: user.dateOfBirth || '',
         gender: user.gender || '',
         address: user.address || '',
         avatar: user.avatar || '',
+      });
+      
+      console.log('🔍 PersonalInfoScreen - FormData after set:', {
+        name: user.name || user.fullName || user.firstName || '',
+        email: user.email || '',
       });
     }
   }, [user]);
@@ -264,7 +273,9 @@ const PersonalInfoScreen = () => {
                       placeholderTextColor={COLORS.textSecondary}
                     />
                   ) : (
-                    <Text style={styles.infoValue}>{formData.name || 'Chưa cập nhật'}</Text>
+                    <Text style={styles.infoValue}>
+                      {formData.name || user?.name || user?.fullName || user?.firstName || 'Chưa cập nhật'}
+                    </Text>
                   )}
                 </View>
               </View>

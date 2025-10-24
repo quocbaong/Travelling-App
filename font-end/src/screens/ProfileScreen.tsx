@@ -23,7 +23,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const ProfileScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const { user, isGuest, logout, userBookings, userFavorites } = useAuth();
+  const { user, isGuest, logout, userBookings, userFavorites, isLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkModeEnabled, setDarkModeEnabled] = useState(false);
@@ -33,7 +33,17 @@ const ProfileScreen = () => {
       navigation.replace('Login');
       return;
     }
-  }, [isGuest, navigation]);
+    
+    // Debug user data
+    console.log('🔍 ProfileScreen - User data:', user);
+    console.log('🔍 ProfileScreen - User name:', user?.name);
+    console.log('🔍 ProfileScreen - User email:', user?.email);
+  }, [isGuest, navigation, user]);
+
+  // Show loading if still loading user data
+  if (isLoading) {
+    return <Loading fullScreen />;
+  }
 
   // Don't render if guest
   if (isGuest) {
@@ -132,8 +142,12 @@ const ProfileScreen = () => {
             style={styles.avatar}
           />
           <View style={styles.userInfo}>
-            <Text style={styles.userName}>{user?.name || 'User'}</Text>
-            <Text style={styles.userEmail}>{user?.email || 'user@example.com'}</Text>
+            <Text style={styles.userName}>
+              {user?.name || user?.fullName || user?.firstName || 'User'}
+            </Text>
+            <Text style={styles.userEmail}>
+              {user?.email || 'user@example.com'}
+            </Text>
           </View>
           <TouchableOpacity 
             style={styles.editButton}
