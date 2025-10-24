@@ -58,19 +58,20 @@ const HomeScreen = () => {
   ]);
 
   const categories: DestinationCategory[] = [
-    'beach',
-    'mountain',
-    'city',
-    'adventure',
-    'cultural',
-    'nature',
-    'luxury',
+    'Beach',
+    'Nature',
+    'Cultural',
+    'Entertainment',
+    'Luxury',
   ];
 
   const loadData = async () => {
     try {
       // Lấy tất cả destinations để filter theo rating
       const allDestinations = await destinationService.getAllDestinations();
+      
+      console.log(`📊 LoadData - Total destinations: ${allDestinations?.length || 0}`);
+      console.log(`📊 LoadData - Sample destinations:`, allDestinations?.slice(0, 3).map(d => ({ name: d.name, category: d.category })));
       
       if (allDestinations && allDestinations.length > 0) {
         // Destinations nổi bật: rating >= 4.8, hiển thị 4-5 cái
@@ -147,20 +148,33 @@ const HomeScreen = () => {
   };
 
   const handleCategoryPress = async (category: DestinationCategory) => {
+    console.log(`🎯 Category pressed: ${category}`);
+    console.log(`🎯 Current selected category: ${selectedCategory}`);
+    
     if (category === selectedCategory) {
       // Nếu đã chọn danh mục này rồi, bỏ chọn - load lại data theo logic rating
+      console.log(`🔄 Deselecting category: ${category}`);
       setSelectedCategory(null);
       await loadData();
     } else {
       // Chọn danh mục mới - filter theo category và áp dụng logic rating
+      console.log(`✅ Selecting new category: ${category}`);
       setSelectedCategory(category);
       const allDestinations = await destinationService.getAllDestinations();
       const featuredIds = featuredDestinations.map(dest => dest.id);
       
+      console.log(`📊 All destinations sample:`, allDestinations.slice(0, 3).map(d => ({ name: d.name, category: d.category })));
+      
       const filtered = allDestinations
-        .filter(dest => dest.category === category && dest.rating >= 4.6 && !featuredIds.includes(dest.id))
+        .filter(dest => dest.category === category && !featuredIds.includes(dest.id))
         .sort((a, b) => b.rating - a.rating)
         .slice(0, 8);
+      
+      console.log(`🔍 Filtering by category: ${category}`);
+      console.log(`📊 Total destinations: ${allDestinations.length}`);
+      console.log(`📊 Filtered results: ${filtered.length}`);
+      console.log(`📊 Featured IDs: ${featuredIds.length}`);
+      console.log(`📊 Filtered destinations:`, filtered.map(d => ({ name: d.name, category: d.category })));
       
       setPopularDestinations(filtered);
     }
