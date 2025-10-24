@@ -440,6 +440,16 @@ const styles = StyleSheet.create({
     fontSize: SIZES.body1,
     color: COLORS.text,
   },
+  menuItemTextContainer: {
+    flex: 1,
+    marginLeft: SIZES.sm,
+  },
+  menuItemSubtext: {
+    ...FONTS.regular,
+    fontSize: SIZES.body3,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
   menuItemRight: {
     flexDirection: 'row',
     alignItems: 'center',

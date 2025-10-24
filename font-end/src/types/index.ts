@@ -94,6 +94,7 @@ export interface RootStackParamList {
   Payment: { destination: Destination; services: string[] };
   PaymentSuccess: { destination: Destination; services: string[] };
   PersonalInfo: undefined;
+  Security: undefined;
 }
 
 export interface MainTabParamList {

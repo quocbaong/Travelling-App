@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Booking, Destination, Review } from '../types';
 import { authService, userService, bookingService, reviewService } from '../api';
+import { biometricService } from '../services/biometricService';
 
 interface AuthContextType {
   user: User | null;
@@ -28,6 +29,9 @@ interface AuthContextType {
   refreshUserData: () => void;
   userReviews: Review[];
   addReview: (review: Review) => void;
+  biometricLogin: () => Promise<boolean>;
+  isBiometricAvailable: boolean;
+  biometricType: string;
 }
 
 const prefersContext = createContext<AuthContextType | undefined>(undefined);
@@ -52,10 +56,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [userReviews, setUserReviews] = useState<Review[]>([]);
   const [pendingTourBooking, setPendingTourBooking] = useState<Destination | null>(null);
   const [pendingScreen, setPendingScreen] = useState<string | null>(null);
+  const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
+  const [biometricType, setBiometricType] = useState('');
 
   useEffect(() => {
     checkAuthStatus();
+    checkBiometricAvailability();
   }, []);
+
+  const checkBiometricAvailability = async () => {
+    try {
+      const available = await biometricService.isAvailable();
+      setIsBiometricAvailable(available);
+
+      if (available) {
+        const supportedTypes = await biometricService.getSupportedTypes();
+        if (supportedTypes.length > 0) {
+          // Get primary biometric type with priority
+          const primaryType = biometricService.getPrimaryBiometricType(supportedTypes);
+          setBiometricType(primaryType);
+          
+          // Log all supported types for debugging
+          const allTypes = biometricService.getSupportedBiometricTypes(supportedTypes);
+          console.log('🔍 Supported biometric types:', allTypes);
+          console.log('🔍 Primary biometric type:', primaryType);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking biometric availability:', error);
+    }
+  };
 
   const checkAuthStatus = async () => {
     try {
@@ -314,6 +344,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const biometricLogin = async (): Promise<boolean> => {
+    try {
+      const result = await biometricService.authenticate(
+        `Đăng nhập bằng ${biometricType}`
+      );
+
+      if (result.success) {
+        // Get saved credentials
+        const credentials = await biometricService.getBiometricCredentials();
+        if (credentials) {
+          // Auto login with saved credentials
+          const loginResult = await authService.login(credentials.email, '');
+          if (loginResult) {
+            const currentUser = await authService.getCurrentUser();
+            if (currentUser) {
+              setUser(currentUser);
+              await loadUserData(currentUser.id);
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    } catch (error) {
+      console.error('Biometric login error:', error);
+      return false;
+    }
+  };
+
   const updateUserInfo = async (updatedInfo: Partial<User>) => {
     if (user) {
       setUser(prev => prev ? { ...prev, ...updatedInfo } : null);
@@ -355,6 +414,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     refreshUserData,
     userReviews,
     addReview,
+    biometricLogin,
+    isBiometricAvailable,
+    biometricType,
   };
 
   return (

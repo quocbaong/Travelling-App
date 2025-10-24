@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
+  TouchableOpacity,
   Switch,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,209 +15,191 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { RootStackParamList } from '../types';
+import { useAuth } from '../contexts/AuthContext';
+import { biometricService } from '../services/biometricService';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const SecurityScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [securitySettings, setSecuritySettings] = useState({
-    biometricLogin: true,
-    autoLock: false,
-    loginNotifications: true,
-    twoFactorAuth: false,
-  });
+  const { user, isBiometricAvailable, biometricType } = useAuth();
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleToggle = (setting: keyof typeof securitySettings) => {
-    setSecuritySettings(prev => ({
-      ...prev,
-      [setting]: !prev[setting]
-    }));
+  useEffect(() => {
+    loadBiometricPreference();
+    
+    // Debug biometric info
+    console.log('🔍 SecurityScreen - Biometric available:', isBiometricAvailable);
+    console.log('🔍 SecurityScreen - Biometric type:', biometricType);
+  }, [isBiometricAvailable, biometricType]);
+
+  const loadBiometricPreference = async () => {
+    try {
+      const enabled = await biometricService.getBiometricPreference();
+      setBiometricEnabled(enabled);
+    } catch (error) {
+      console.error('Error loading biometric preference:', error);
+    }
   };
 
-  const securityOptions = [
-    {
-      id: 'changePassword',
-      title: 'Đổi mật khẩu',
-      subtitle: 'Thay đổi mật khẩu tài khoản',
-      icon: 'key-outline',
-    },
-    {
-      id: 'twoFactorAuth',
-      title: 'Xác thực 2 yếu tố',
-      subtitle: 'Bảo vệ tài khoản bằng 2FA',
-      icon: 'shield-checkmark-outline',
-      isToggle: true,
-      value: securitySettings.twoFactorAuth,
-    },
-    {
-      id: 'biometricLogin',
-      title: 'Đăng nhập sinh trắc học',
-      subtitle: 'Sử dụng vân tay hoặc khuôn mặt',
-      icon: 'finger-print-outline',
-      isToggle: true,
-      value: securitySettings.biometricLogin,
-    },
-    {
-      id: 'autoLock',
-      title: 'Tự động khóa',
-      subtitle: 'Khóa app khi không sử dụng',
-      icon: 'lock-closed-outline',
-      isToggle: true,
-      value: securitySettings.autoLock,
-    },
-    {
-      id: 'loginNotifications',
-      title: 'Thông báo đăng nhập',
-      subtitle: 'Nhận thông báo khi có đăng nhập mới',
-      icon: 'notifications-outline',
-      isToggle: true,
-      value: securitySettings.loginNotifications,
-    },
-  ];
+  const handleBiometricToggle = async (value: boolean) => {
+    if (value) {
+      // Enable biometric authentication
+      setLoading(true);
+      try {
+        const result = await biometricService.authenticate(
+          `Kích hoạt ${biometricType} để đăng nhập nhanh`
+        );
 
-  const deviceOptions = [
-    {
-      id: 'device1',
-      title: 'iPhone 14 Pro',
-      subtitle: 'Đang sử dụng • iOS 17.0',
-      icon: 'phone-portrait-outline',
-      isCurrent: true,
-    },
-    {
-      id: 'device2',
-      title: 'Samsung Galaxy S23',
-      subtitle: 'Đã đăng nhập • Android 13',
-      icon: 'phone-portrait-outline',
-      isCurrent: false,
-    },
-  ];
+        if (result.success) {
+          await biometricService.saveBiometricPreference(true);
+          if (user) {
+            await biometricService.saveBiometricCredentials(user.id, user.email);
+          }
+          setBiometricEnabled(true);
+        } else {
+          Alert.alert(
+            'Thất bại',
+            result.error || 'Không thể kích hoạt sinh trắc học',
+            [{ text: 'OK' }]
+          );
+        }
+      } catch (error) {
+        console.error('Error enabling biometric:', error);
+        Alert.alert('Lỗi', 'Không thể kích hoạt sinh trắc học');
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // Disable biometric authentication
+      await biometricService.saveBiometricPreference(false);
+      await biometricService.clearBiometricCredentials();
+      setBiometricEnabled(false);
+    }
+  };
+
+  const handleChangePassword = () => {
+    Alert.alert(
+      'Đổi mật khẩu',
+      'Tính năng đổi mật khẩu sẽ được phát triển trong phiên bản tiếp theo.',
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleTwoFactorAuth = () => {
+    Alert.alert(
+      'Xác thực 2 bước',
+      'Tính năng xác thực 2 bước sẽ được phát triển trong phiên bản tiếp theo.',
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleLoginHistory = () => {
+    Alert.alert(
+      'Lịch sử đăng nhập',
+      'Tính năng xem lịch sử đăng nhập sẽ được phát triển trong phiên bản tiếp theo.',
+      [{ text: 'OK' }]
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+        </TouchableOpacity>
+        <Text style={styles.title}>Bảo mật</Text>
+        <View style={styles.placeholder} />
+      </View>
+
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Security Settings */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="shield-checkmark-outline" size={24} color={COLORS.primary} />
+            <Text style={styles.sectionTitle}>Bảo mật tài khoản</Text>
+          </View>
+
+          {/* Biometric Authentication */}
+          {isBiometricAvailable ? (
+            <View style={styles.settingItem}>
+              <View style={styles.settingInfo}>
+                <Text style={styles.settingTitle}>
+                  Đăng nhập sinh trắc học
+                </Text>
+                <Text style={styles.settingDescription}>
+                  Sử dụng vân tây hoặc khuôn mặt để đăng nhập
+                </Text>
+              </View>
+              <Switch
+                value={biometricEnabled}
+                onValueChange={handleBiometricToggle}
+                disabled={loading}
+                trackColor={{ false: COLORS.lightGray, true: COLORS.primary }}
+                thumbColor={biometricEnabled ? COLORS.white : COLORS.gray}
+              />
+            </View>
+          ) : (
+            <View style={styles.settingItem}>
+              <View style={styles.settingInfo}>
+                <Text style={styles.settingTitle}>
+                  Đăng nhập sinh trắc học
+                </Text>
+                <Text style={styles.settingDescription}>
+                  Thiết bị không hỗ trợ sinh trắc học
+                </Text>
+              </View>
+              <Ionicons name="close-circle-outline" size={20} color={COLORS.gray} />
+            </View>
+          )}
+
           <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
+            style={styles.settingItem}
+            onPress={handleChangePassword}
+            activeOpacity={0.7}
           >
-            <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+            <View style={styles.settingInfo}>
+              <Text style={styles.settingTitle}>Đổi mật khẩu</Text>
+              <Text style={styles.settingDescription}>
+                Thay đổi mật khẩu tài khoản
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={COLORS.gray} />
           </TouchableOpacity>
-          <Text style={styles.title}>Bảo mật</Text>
-          <View style={styles.placeholder} />
-        </View>
 
-        {/* Security Settings Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Cài đặt bảo mật</Text>
-          
-          <View style={styles.settingsCard}>
-            {securityOptions.map((item, index) => (
-              <View key={item.id}>
-                <View style={styles.settingItem}>
-                  <View style={styles.settingItemLeft}>
-                    <View style={styles.settingIcon}>
-                      <Ionicons name={item.icon as any} size={20} color={COLORS.primary} />
-                    </View>
-                    <View style={styles.settingInfo}>
-                      <Text style={styles.settingTitle}>{item.title}</Text>
-                      <Text style={styles.settingSubtitle}>{item.subtitle}</Text>
-                    </View>
-                  </View>
-                  {item.isToggle ? (
-                    <Switch
-                      value={item.value}
-                      onValueChange={() => handleToggle(item.id as keyof typeof securitySettings)}
-                      trackColor={{ false: COLORS.lightGray, true: COLORS.primaryLight }}
-                      thumbColor={item.value ? COLORS.primary : COLORS.gray}
-                    />
-                  ) : (
-                    <Ionicons name="chevron-forward" size={16} color={COLORS.gray} />
-                  )}
-                </View>
-                {index < securityOptions.length - 1 && <View style={styles.divider} />}
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* Device Management Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quản lý thiết bị</Text>
-          
-          <View style={styles.deviceCard}>
-            {deviceOptions.map((device, index) => (
-              <View key={device.id}>
-                <View style={styles.deviceItem}>
-                  <View style={styles.deviceItemLeft}>
-                    <View style={styles.deviceIcon}>
-                      <Ionicons name={device.icon as any} size={20} color={COLORS.primary} />
-                    </View>
-                    <View style={styles.deviceInfo}>
-                      <Text style={styles.deviceTitle}>{device.title}</Text>
-                      <Text style={styles.deviceSubtitle}>{device.subtitle}</Text>
-                    </View>
-                  </View>
-                  <View style={styles.deviceRight}>
-                    {device.isCurrent && (
-                      <View style={styles.currentBadge}>
-                        <Text style={styles.currentBadgeText}>Hiện tại</Text>
-                      </View>
-                    )}
-                    {!device.isCurrent && (
-                      <TouchableOpacity style={styles.removeButton}>
-                        <Ionicons name="trash-outline" size={16} color={COLORS.error} />
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                </View>
-                {index < deviceOptions.length - 1 && <View style={styles.divider} />}
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* Privacy Settings Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Cài đặt riêng tư</Text>
-          
-          <View style={styles.privacyCard}>
-            <View style={styles.privacyItem}>
-              <View style={styles.privacyItemLeft}>
-                <View style={styles.privacyIcon}>
-                  <Ionicons name="eye-outline" size={20} color={COLORS.primary} />
-                </View>
-                <View style={styles.privacyInfo}>
-                  <Text style={styles.privacyTitle}>Chế độ riêng tư</Text>
-                  <Text style={styles.privacySubtitle}>Ẩn thông tin cá nhân khỏi người khác</Text>
-                </View>
-              </View>
-              <Switch
-                value={true}
-                trackColor={{ false: COLORS.lightGray, true: COLORS.primaryLight }}
-                thumbColor={COLORS.primary}
-              />
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={handleTwoFactorAuth}
+            activeOpacity={0.7}
+          >
+            <View style={styles.settingInfo}>
+              <Text style={styles.settingTitle}>Xác thực 2 bước</Text>
+              <Text style={styles.settingDescription}>
+                Bảo mật tài khoản với xác thực 2 bước
+              </Text>
             </View>
+            <Ionicons name="chevron-forward" size={20} color={COLORS.gray} />
+          </TouchableOpacity>
 
-            <View style={styles.divider} />
-
-            <View style={styles.privacyItem}>
-              <View style={styles.privacyItemLeft}>
-                <View style={styles.privacyIcon}>
-                  <Ionicons name="analytics-outline" size={20} color={COLORS.primary} />
-                </View>
-                <View style={styles.privacyInfo}>
-                  <Text style={styles.privacyTitle}>Chia sẻ dữ liệu</Text>
-                  <Text style={styles.privacySubtitle}>Cho phép thu thập dữ liệu để cải thiện dịch vụ</Text>
-                </View>
-              </View>
-              <Switch
-                value={false}
-                trackColor={{ false: COLORS.lightGray, true: COLORS.primaryLight }}
-                thumbColor={COLORS.gray}
-              />
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={handleLoginHistory}
+            activeOpacity={0.7}
+          >
+            <View style={styles.settingInfo}>
+              <Text style={styles.settingTitle}>Lịch sử đăng nhập</Text>
+              <Text style={styles.settingDescription}>
+                Xem lịch sử đăng nhập tài khoản
+              </Text>
             </View>
-          </View>
+            <Ionicons name="chevron-forward" size={20} color={COLORS.gray} />
+          </TouchableOpacity>
         </View>
 
         <View style={{ height: 20 }} />
@@ -236,185 +219,87 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: SIZES.md,
     paddingVertical: SIZES.md,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.lightGray,
+    backgroundColor: COLORS.white,
+    ...SHADOWS.light,
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.veryLightGray,
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: SIZES.xs,
   },
   title: {
     ...FONTS.bold,
-    fontSize: SIZES.h4,
+    fontSize: SIZES.h3,
     color: COLORS.text,
   },
   placeholder: {
     width: 40,
   },
-  section: {
+  content: {
+    flex: 1,
     paddingHorizontal: SIZES.md,
-    marginTop: SIZES.lg,
   },
-  sectionTitle: {
-    ...FONTS.bold,
-    fontSize: SIZES.h5,
-    color: COLORS.text,
+  section: {
+    backgroundColor: COLORS.white,
+    borderRadius: SIZES.radius,
+    padding: SIZES.md,
+    marginTop: SIZES.md,
+    ...SHADOWS.light,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: SIZES.md,
   },
-  settingsCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: SIZES.radiusMd,
-    padding: SIZES.sm,
-    ...SHADOWS.light,
+  sectionTitle: {
+    ...FONTS.semiBold,
+    fontSize: SIZES.h4,
+    color: COLORS.text,
+    marginLeft: SIZES.sm,
   },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: SIZES.sm,
-    paddingHorizontal: SIZES.sm,
-  },
-  settingItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  settingIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.veryLightGray,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: SIZES.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.lightGray,
   },
   settingInfo: {
     flex: 1,
+    marginRight: SIZES.md,
   },
   settingTitle: {
-    ...FONTS.semiBold,
+    ...FONTS.medium,
     fontSize: SIZES.body1,
     color: COLORS.text,
-    marginBottom: 2,
+    marginBottom: 4,
   },
-  settingSubtitle: {
+  settingDescription: {
     ...FONTS.regular,
-    fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: COLORS.veryLightGray,
-    marginHorizontal: SIZES.sm,
-  },
-  deviceCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: SIZES.radiusMd,
-    padding: SIZES.sm,
-    ...SHADOWS.light,
-  },
-  deviceItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: SIZES.sm,
-    paddingHorizontal: SIZES.sm,
-  },
-  deviceItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  deviceIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.veryLightGray,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: SIZES.sm,
-  },
-  deviceInfo: {
-    flex: 1,
-  },
-  deviceTitle: {
-    ...FONTS.semiBold,
-    fontSize: SIZES.body1,
-    color: COLORS.text,
-    marginBottom: 2,
-  },
-  deviceSubtitle: {
-    ...FONTS.regular,
-    fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
-  },
-  deviceRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  currentBadge: {
-    backgroundColor: COLORS.success,
-    paddingHorizontal: SIZES.sm,
-    paddingVertical: SIZES.xs,
-    borderRadius: SIZES.radiusSm,
-  },
-  currentBadgeText: {
-    ...FONTS.semiBold,
     fontSize: SIZES.body3,
-    color: COLORS.white,
+    color: COLORS.textSecondary,
   },
-  removeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: COLORS.lightError,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  privacyCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: SIZES.radiusMd,
-    padding: SIZES.sm,
-    ...SHADOWS.light,
-  },
-  privacyItem: {
+  setupButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    backgroundColor: COLORS.lightPrimary,
     paddingVertical: SIZES.sm,
-    paddingHorizontal: SIZES.sm,
+    paddingHorizontal: SIZES.md,
+    borderRadius: SIZES.radius,
+    marginTop: SIZES.sm,
   },
-  privacyItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
+  setupButtonText: {
+    ...FONTS.medium,
+    fontSize: SIZES.body2,
+    color: COLORS.primary,
+    marginLeft: SIZES.xs,
   },
-  privacyIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.veryLightGray,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: SIZES.sm,
-  },
-  privacyInfo: {
-    flex: 1,
-  },
-  privacyTitle: {
-    ...FONTS.semiBold,
-    fontSize: SIZES.body1,
-    color: COLORS.text,
-    marginBottom: 2,
-  },
-  privacySubtitle: {
+  unavailableText: {
     ...FONTS.regular,
     fontSize: SIZES.body2,
     color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginTop: SIZES.sm,
   },
 });
 
