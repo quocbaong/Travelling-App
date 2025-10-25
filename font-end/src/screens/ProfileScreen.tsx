@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS, DEFAULT_AVATAR } from '../constants/theme';
 import { RootStackParamList } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { Loading } from '../components';
@@ -138,12 +138,12 @@ const ProfileScreen = () => {
         {/* User Info Card */}
         <View style={styles.userCard}>
           <Image
-            source={{ uri: user?.avatar || 'https://via.placeholder.com/100' }}
+            source={{ uri: user?.avatar || DEFAULT_AVATAR }}
             style={styles.avatar}
           />
           <View style={styles.userInfo}>
             <Text style={styles.userName}>
-              {user?.name || user?.fullName || user?.firstName || 'User'}
+              {user?.name || 'User'}
             </Text>
             <Text style={styles.userEmail}>
               {user?.email || 'user@example.com'}

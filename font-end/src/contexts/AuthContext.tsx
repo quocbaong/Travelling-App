@@ -8,7 +8,7 @@ interface AuthContextType {
   isGuest: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (userData: Partial<User>) => Promise<boolean>;
+  register: (userData: Partial<User> & { password?: string; name?: string; phone?: string; dateOfBirth?: string; gender?: string; address?: string }) => Promise<boolean>;
   logout: () => void;
   clearAsyncStorage: () => void;
   requireAuth: () => boolean;
@@ -147,12 +147,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (userData: Partial<User>): Promise<boolean> => {
+  const register = async (userData: Partial<User> & { password?: string; name?: string; phone?: string; dateOfBirth?: string; gender?: string; address?: string }): Promise<boolean> => {
     try {
       setIsLoading(true);
       const response = await authService.register({
         email: userData.email || '',
-        password: 'defaultPassword123', // TODO: Get from registration form
+        password: userData.password || 'defaultPassword123',
         fullName: userData.name || '',
         phone: userData.phone,
         dateOfBirth: userData.dateOfBirth,
@@ -289,7 +289,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
         
         // Trigger data refresh to update ratings
-        loadUserData();
+        loadUserData(user.id);
       } catch (error) {
         console.error('Failed to sync review to backend:', error);
       }
@@ -355,7 +355,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const credentials = await biometricService.getBiometricCredentials();
         if (credentials) {
           // Auto login with saved credentials
-          const loginResult = await authService.login(credentials.email, '');
+          const loginResult = await authService.login({ email: credentials.email, password: '' });
           if (loginResult) {
             const currentUser = await authService.getCurrentUser();
             if (currentUser) {

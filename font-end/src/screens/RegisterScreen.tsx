@@ -65,6 +65,7 @@ const RegisterScreen = () => {
       name,
       email,
       phone,
+      password,
     });
     setLoading(false);
     

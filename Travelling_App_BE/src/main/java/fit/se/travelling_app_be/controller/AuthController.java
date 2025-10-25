@@ -32,11 +32,13 @@ public class AuthController {
         User user = new User();
         user.setEmail(request.getEmail());
         user.setPassword(request.getPassword());
-        user.setFullName(request.getFullName());
+        user.setFullName(request.getFullName() != null ? request.getFullName() : "User");
         user.setPhone(request.getPhone());
         user.setDateOfBirth(request.getDateOfBirth());
         user.setGender(request.getGender());
         user.setAddress(request.getAddress());
+        // Set default avatar for new users
+        user.setAvatar("https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face");
         
         User savedUser = userService.createUser(user);
         
@@ -54,8 +56,8 @@ public class AuthController {
         
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            // Temporarily use equals() for test admin with plain text password
-            if (user.getPassword().equals(request.getPassword())) {
+            // Hash the input password and compare with hashed password in database
+            if (passwordEncoder.matches(request.getPassword(), user.getPassword())) {
                 AuthResponse authResponse = new AuthResponse();
                 authResponse.setToken("dummy-token"); // TODO: Implement JWT
                 authResponse.setUser(user);
@@ -85,6 +87,17 @@ public class AuthController {
         try {
             User updatedUser = userService.updateUser(id, userDetails);
             return ResponseEntity.ok(ApiResponse.success("User updated successfully", updatedUser));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error(e.getMessage()));
+        }
+    }
+    
+    @PutMapping("/user/{id}/password")
+    public ResponseEntity<ApiResponse<String>> changePassword(@PathVariable String id, @RequestBody String newPassword) {
+        try {
+            userService.changePassword(id, newPassword);
+            return ResponseEntity.ok(ApiResponse.success("Password changed successfully"));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest()
                 .body(ApiResponse.error(e.getMessage()));

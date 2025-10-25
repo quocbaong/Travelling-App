@@ -88,6 +88,11 @@ class AuthService {
     }
   }
 
+
+  async changePassword(userId: string, newPassword: string): Promise<void> {
+    await HttpClient.put(`${API_CONFIG.ENDPOINTS.USER}/${userId}/password`, newPassword);
+  }
+
   // Auto-refresh token if needed (for production)
   async refreshToken(): Promise<boolean> {
     try {

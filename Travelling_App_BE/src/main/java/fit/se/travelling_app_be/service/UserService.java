@@ -17,6 +17,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     
     public User createUser(User user) {
+        // Hash password before saving to database
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
@@ -33,12 +34,28 @@ public class UserService {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("User not found"));
         
-        user.setFullName(userDetails.getFullName());
-        user.setPhone(userDetails.getPhone());
-        user.setDateOfBirth(userDetails.getDateOfBirth());
-        user.setGender(userDetails.getGender());
-        user.setAddress(userDetails.getAddress());
-        user.setAvatar(userDetails.getAvatar());
+        // Only update fields that are not null
+        if (userDetails.getFullName() != null) {
+            user.setFullName(userDetails.getFullName());
+        }
+        if (userDetails.getPhone() != null) {
+            user.setPhone(userDetails.getPhone());
+        }
+        if (userDetails.getDateOfBirth() != null) {
+            user.setDateOfBirth(userDetails.getDateOfBirth());
+        }
+        if (userDetails.getGender() != null) {
+            user.setGender(userDetails.getGender());
+        }
+        if (userDetails.getAddress() != null) {
+            user.setAddress(userDetails.getAddress());
+        }
+        if (userDetails.getAvatar() != null) {
+            user.setAvatar(userDetails.getAvatar());
+        }
+        if (userDetails.getPassword() != null) {
+            user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
+        }
         
         return userRepository.save(user);
     }
@@ -53,5 +70,13 @@ public class UserService {
     
     public void deleteUser(String id) {
         userRepository.deleteById(id);
+    }
+    
+    public User changePassword(String id, String newPassword) {
+        User user = userRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        user.setPassword(passwordEncoder.encode(newPassword));
+        return userRepository.save(user);
     }
 }

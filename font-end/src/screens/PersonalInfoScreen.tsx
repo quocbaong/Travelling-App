@@ -16,7 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 
-import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS, DEFAULT_AVATAR } from '../constants/theme';
 import { RootStackParamList } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -240,7 +240,7 @@ const PersonalInfoScreen = () => {
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
             <Image
-              source={{ uri: formData.avatar || user?.avatar || 'https://via.placeholder.com/120' }}
+              source={{ uri: formData.avatar || user?.avatar || DEFAULT_AVATAR }}
               style={styles.profileImage}
             />
             <TouchableOpacity style={styles.cameraButton} onPress={handleImagePicker}>
