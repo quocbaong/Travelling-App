@@ -10,6 +10,9 @@ import java.time.LocalDateTime;
 
 @Data
 public class BookingRequest {
+    @NotBlank(message = "User ID is required")
+    private String userId;
+    
     @NotBlank(message = "Destination ID is required")
     private String destinationId;
     

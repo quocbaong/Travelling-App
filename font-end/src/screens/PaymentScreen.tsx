@@ -125,6 +125,16 @@ const PaymentScreen = () => {
     const depDate = departureDate ? new Date(departureDate.split('/').reverse().join('-')) : new Date();
     const retDate = returnDate ? new Date(returnDate.split('/').reverse().join('-')) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     
+    // Get payment method name
+    const selectedPaymentMethod = paymentMethods.find(pm => pm.id === selectedPayment);
+    const paymentMethodName = selectedPaymentMethod?.name || selectedPayment;
+    
+    // Build special requests with service names
+    const serviceNames = services.map(serviceId => getServiceName(serviceId));
+    const specialRequestsText = serviceNames.length > 0 
+      ? `Dịch vụ đã chọn: ${serviceNames.join(', ')}` 
+      : '';
+    
     const newBooking: Booking = {
       id: Date.now().toString(),
       destination,
@@ -137,8 +147,8 @@ const PaymentScreen = () => {
       totalPrice: bookingSummary.total,
       status: 'confirmed',
       createdAt: new Date().toISOString(),
-      paymentMethod: selectedPayment,
-      specialRequests: `Services: ${services.join(', ')}`,
+      paymentMethod: paymentMethodName,
+      specialRequests: specialRequestsText,
       selectedServices: services,
     };
 

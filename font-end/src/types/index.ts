@@ -34,12 +34,15 @@ export interface Booking {
   userId: string;
   startDate: string;
   endDate: string;
+  departureDate: string; // dd/mm/yyyy format
+  returnDate: string; // dd/mm/yyyy format
   guests: number;
   totalPrice: number;
   status: BookingStatus;
   createdAt: string;
   paymentMethod?: string;
   specialRequests?: string;
+  selectedServices?: string[]; // IDs of selected services
 }
 
 export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed';

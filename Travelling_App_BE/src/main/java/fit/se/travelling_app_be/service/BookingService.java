@@ -20,8 +20,15 @@ public class BookingService {
     
     public Booking createBooking(Booking booking) {
         // Set default values
-        booking.setStatus("PENDING");
-        booking.setPaymentStatus("PENDING");
+        // If payment method is provided and booking is created, mark as CONFIRMED
+        // In real app, this should be done after payment gateway confirmation
+        if (booking.getPaymentMethod() != null && !booking.getPaymentMethod().isEmpty()) {
+            booking.setStatus("CONFIRMED");
+            booking.setPaymentStatus("PAID");
+        } else {
+            booking.setStatus("PENDING");
+            booking.setPaymentStatus("PENDING");
+        }
         booking.setBookingDate(LocalDateTime.now());
         
         return bookingRepository.save(booking);

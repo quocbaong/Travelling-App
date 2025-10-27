@@ -44,12 +44,10 @@ const TourServicesScreen = () => {
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [totalPrice, setTotalPrice] = useState(destination.price);
   const [departureDate, setDepartureDate] = useState<string>('');
-  const [returnDate, setReturnDate] = useState<string>('');
+  const [returnDate, setReturnDate] = useState<string>(''); // Auto-calculated
   const [participants, setParticipants] = useState<number>(1);
   const [showDeparturePicker, setShowDeparturePicker] = useState(false);
-  const [showReturnPicker, setShowReturnPicker] = useState(false);
   const [selectedDepartureDate, setSelectedDepartureDate] = useState(new Date());
-  const [selectedReturnDate, setSelectedReturnDate] = useState(new Date());
 
   const tourServices: TourService[] = [
     {
@@ -163,12 +161,6 @@ const TourServicesScreen = () => {
       return;
     }
     
-    // Kiểm tra đã chọn ngày kết thúc
-    if (!returnDate) {
-      alert('Vui lòng chọn ngày kết thúc');
-      return;
-    }
-    
     // Kiểm tra đã chọn ít nhất 1 gói chính
     const hasMainPackage = selectedServices.some(id => ['1', '2', '3'].includes(id));
     if (!hasMainPackage) {
@@ -192,14 +184,12 @@ const TourServicesScreen = () => {
     if (selectedDate) {
       setSelectedDepartureDate(selectedDate);
       setDepartureDate(selectedDate.toLocaleDateString('vi-VN'));
-    }
-  };
-
-  const onReturnDateChange = (event: any, selectedDate?: Date) => {
-    setShowReturnPicker(false);
-    if (selectedDate) {
-      setSelectedReturnDate(selectedDate);
-      setReturnDate(selectedDate.toLocaleDateString('vi-VN'));
+      
+      // Auto-calculate return date based on tour duration
+      const durationDays = parseInt(destination.duration?.match(/\d+/)?.[0] || '7');
+      const returnDateObj = new Date(selectedDate);
+      returnDateObj.setDate(returnDateObj.getDate() + durationDays);
+      setReturnDate(returnDateObj.toLocaleDateString('vi-VN'));
     }
   };
 
@@ -211,7 +201,11 @@ const TourServicesScreen = () => {
         {/* Destination Header */}
         <View style={styles.destinationHeader}>
           <Image
-            source={{ uri: destination.imageUrl }}
+            source={{ 
+              uri: destination.imageUrl || 
+              destination.images?.[0] || 
+              'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+            }}
             style={styles.destinationImage}
           />
           <LinearGradient
@@ -254,28 +248,20 @@ const TourServicesScreen = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Return Date */}
-          <View style={styles.selectionRow}>
-            <View style={styles.selectionLabel}>
-              <Ionicons name="calendar" size={20} color={COLORS.primary} />
-              <Text style={styles.selectionLabelText}>Ngày kết thúc</Text>
+          {/* Return Date - Auto calculated, read-only */}
+          {returnDate && (
+            <View style={styles.selectionRow}>
+              <View style={styles.selectionLabel}>
+                <Ionicons name="calendar" size={20} color={COLORS.primary} />
+                <Text style={styles.selectionLabelText}>Ngày kết thúc</Text>
+              </View>
+              <View style={[styles.dateButton, styles.dateButtonDisabled]}>
+                <Text style={styles.dateButtonText}>
+                  {returnDate}
+                </Text>
+              </View>
             </View>
-            <TouchableOpacity
-              style={styles.dateButton}
-              onPress={() => {
-                if (!departureDate) {
-                  Alert.alert('Lỗi', 'Vui lòng chọn ngày khởi hành trước');
-                  return;
-                }
-                setShowReturnPicker(true);
-              }}
-            >
-              <Text style={styles.dateButtonText}>
-                {returnDate || 'Chọn ngày'}
-              </Text>
-              <Ionicons name="chevron-down" size={20} color={COLORS.gray} />
-            </TouchableOpacity>
-          </View>
+          )}
 
           {/* Participants */}
           <View style={styles.selectionRow}>
@@ -490,24 +476,14 @@ const TourServicesScreen = () => {
         />
       </View>
 
-      {/* Date Pickers */}
+      {/* Date Picker - Only for departure date */}
       {showDeparturePicker && (
         <DateTimePicker
           value={selectedDepartureDate}
           mode="date"
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={onDepartureDateChange}
-          minimumDate={new Date()}
-        />
-      )}
-      
-      {showReturnPicker && (
-        <DateTimePicker
-          value={selectedReturnDate}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={onReturnDateChange}
-          minimumDate={departureDate ? new Date(departureDate.split('/').reverse().join('-')) : new Date()}
+          minimumDate={new Date(Date.now() + 24 * 60 * 60 * 1000)} // Tomorrow
         />
       )}
     </SafeAreaView>
@@ -604,10 +580,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.lightGray,
   },
+  dateButtonDisabled: {
+    borderColor: COLORS.lightGray,
+    opacity: 0.7,
+    backgroundColor: COLORS.veryLightGray,
+    
+  },
   dateButtonText: {
     ...FONTS.regular,
     fontSize: SIZES.body2,
     color: COLORS.text,
+  
+  },
+  dateButtonPlaceholder: {
+    color: COLORS.gray,
+    fontStyle: 'italic',
   },
   participantsContainer: {
     flexDirection: 'row',

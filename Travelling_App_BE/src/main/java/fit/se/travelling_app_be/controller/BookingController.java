@@ -35,7 +35,7 @@ public class BookingController {
             
             // Create booking
             Booking booking = new Booking();
-            booking.setUserId("dummy-user-id"); // TODO: Get from JWT token
+            booking.setUserId(request.getUserId()); // Get from request
             booking.setDestination(destinationOpt.get());
             booking.setTravelDate(request.getTravelDate());
             booking.setNumberOfTravelers(request.getNumberOfTravelers());

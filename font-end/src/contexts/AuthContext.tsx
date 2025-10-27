@@ -116,13 +116,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const loadUserData = async (userId: string) => {
     try {
+      console.log('📥 Loading user data for userId:', userId);
+      
       // Load bookings, favorites, and reviews
       const [bookings, favorites, reviews] = await Promise.all([
-        bookingService.getUserBookings(userId).catch(() => []),
-        userService.getFavorites(userId).catch(() => []),
-        reviewService.getUserReviews(userId).catch(() => [])
+        bookingService.getUserBookings(userId).catch((err) => {
+          console.error('❌ Failed to load bookings:', err);
+          return [];
+        }),
+        userService.getFavorites(userId).catch((err) => {
+          console.error('❌ Failed to load favorites:', err);
+          return [];
+        }),
+        reviewService.getUserReviews(userId).catch((err) => {
+          console.error('❌ Failed to load reviews:', err);
+          return [];
+        })
       ]);
 
+      console.log('✅ Loaded bookings:', bookings.length, 'items');
+      console.log('📋 Bookings data:', JSON.stringify(bookings, null, 2));
+      
       setUserBookings(bookings);
       setUserReviews(reviews);
       
@@ -200,13 +214,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Also update backend if user is logged in
     if (user) {
       try {
+        console.log('💰 Creating booking with totalPrice:', booking.totalPrice);
+        console.log('💳 Payment method:', booking.paymentMethod);
         await bookingService.createBooking(
           booking.destination,
           user.id,
           booking.startDate,
           booking.endDate,
           booking.guests,
-          booking.specialRequests
+          booking.specialRequests,
+          booking.totalPrice,
+          booking.paymentMethod // Pass payment method
         );
       } catch (error) {
         console.error('Failed to sync booking to backend:', error);
@@ -226,36 +244,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const addFavorite = async (destination: Destination) => {
-    // Update UI immediately
-    setUserFavorites(prev => {
-      const exists = prev.some(fav => fav.id === destination.id);
-      if (!exists) {
-        return [...prev, destination];
-      }
-      return prev;
-    });
+    // Check if already exists in UI
+    const exists = userFavorites.some(fav => fav.id === destination.id);
+    if (exists) {
+      console.log('Destination already in favorites');
+      return;
+    }
     
-    // Update backend if user is logged in
+    // Update backend first
     if (user) {
       try {
         await userService.addToFavorites(user.id, destination.id);
+        // Update UI only after successful backend call
+        setUserFavorites(prev => [...prev, destination]);
+        // Also update user.favorites
+        setUser(prev => prev ? {
+          ...prev,
+          favorites: [...(prev.favorites || []), destination.id]
+        } : null);
       } catch (error) {
         console.error('Failed to add favorite to backend:', error);
+        // Don't update UI if backend fails
       }
+    } else {
+      // Update UI immediately for guest users
+      setUserFavorites(prev => [...prev, destination]);
     }
   };
 
   const removeFavorite = async (destinationId: string) => {
-    // Update UI immediately
-    setUserFavorites(prev => prev.filter(fav => fav.id !== destinationId));
-    
-    // Update backend if user is logged in
+    // Update backend first
     if (user) {
       try {
         await userService.removeFromFavorites(user.id, destinationId);
+        // Update UI only after successful backend call
+        setUserFavorites(prev => prev.filter(fav => fav.id !== destinationId));
+        // Also update user.favorites
+        setUser(prev => prev ? {
+          ...prev,
+          favorites: (prev.favorites || []).filter(id => id !== destinationId)
+        } : null);
       } catch (error) {
         console.error('Failed to remove favorite from backend:', error);
+        // Don't update UI if backend fails
       }
+    } else {
+      // Update UI immediately for guest users
+      setUserFavorites(prev => prev.filter(fav => fav.id !== destinationId));
     }
   };
 

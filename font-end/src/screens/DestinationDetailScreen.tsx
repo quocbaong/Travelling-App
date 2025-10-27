@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -40,6 +40,11 @@ const DestinationDetailScreen = () => {
   );
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const scrollY = useRef(new Animated.Value(0)).current;
+
+  // Update favorite status when user favorites change
+  useEffect(() => {
+    setIsFavorite(user?.favorites?.includes(destination.id) || false);
+  }, [user?.favorites, destination.id]);
 
   // Calculate real-time rating and reviews
   const getRealTimeRating = () => {

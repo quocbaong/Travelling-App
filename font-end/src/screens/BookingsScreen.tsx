@@ -37,6 +37,8 @@ const BookingsScreen = () => {
       navigation.navigate('Login');
       return;
     }
+    console.log('🔄 BookingsScreen: useEffect triggered');
+    console.log('🔄 userBookings from context:', userBookings.length);
     loadBookings();
   }, [activeTab, isGuest, userBookings]);
 
@@ -53,6 +55,17 @@ const BookingsScreen = () => {
     try {
       // Chỉ sử dụng userBookings từ context, không load từ API
       const now = new Date();
+      
+      // Log để debug
+      console.log('📋 Total bookings:', userBookings.length);
+      if (userBookings.length > 0) {
+        console.log('📋 First booking:', {
+          id: userBookings[0].id,
+          destination: userBookings[0].destination?.name,
+          imageUrl: userBookings[0].destination?.imageUrl,
+          images: userBookings[0].destination?.images
+        });
+      }
       
       if (activeTab === 'upcoming') {
         const upcoming = userBookings.filter(booking => {
@@ -212,7 +225,11 @@ const BookingsScreen = () => {
                   activeOpacity={0.9}
                 >
                   <Image
-                    source={{ uri: booking.destination.imageUrl }}
+                    source={{ 
+                      uri: booking.destination?.imageUrl || 
+                      booking.destination?.images?.[0] || 
+                      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+                    }}
                     style={styles.bookingImage}
                   />
                   <LinearGradient
