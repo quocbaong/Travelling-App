@@ -366,7 +366,7 @@ const HomeScreen = () => {
                       <View style={styles.popularRating}>
                         <Ionicons name="star" size={12} color={COLORS.rating} />
                         <Text style={styles.popularRatingText}>
-                          {destination.rating}
+                          {destination.rating || 0}
                         </Text>
                       </View>
                       <Text style={styles.popularPrice}>${destination.price}</Text>

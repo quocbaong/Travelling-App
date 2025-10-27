@@ -201,21 +201,6 @@ const TourReviewScreen = () => {
               </View>
             </View>
           </View>
-
-          {/* Already Reviewed Notice */}
-          {hasAlreadyReviewed() && (
-            <View style={styles.alreadyReviewedCard}>
-              <View style={styles.alreadyReviewedIcon}>
-                <Ionicons name="checkmark-circle" size={24} color={COLORS.success} />
-              </View>
-              <View style={styles.alreadyReviewedContent}>
-                <Text style={styles.alreadyReviewedTitle}>Đã đánh giá</Text>
-                <Text style={styles.alreadyReviewedText}>
-                  Bạn đã đánh giá tour này rồi. Mỗi tour chỉ được đánh giá một lần.
-                </Text>
-              </View>
-            </View>
-          )}
         </View>
 
         {/* Rating Section */}
@@ -509,33 +494,6 @@ const styles = StyleSheet.create({
     ...FONTS.bold,
     fontSize: SIZES.body1,
     color: COLORS.white,
-  },
-  alreadyReviewedCard: {
-    backgroundColor: COLORS.success + '10',
-    borderRadius: SIZES.radiusMd,
-    padding: SIZES.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: SIZES.md,
-    borderWidth: 1,
-    borderColor: COLORS.success + '30',
-  },
-  alreadyReviewedIcon: {
-    marginRight: SIZES.md,
-  },
-  alreadyReviewedContent: {
-    flex: 1,
-  },
-  alreadyReviewedTitle: {
-    ...FONTS.bold,
-    fontSize: SIZES.body1,
-    color: COLORS.success,
-    marginBottom: SIZES.xs,
-  },
-  alreadyReviewedText: {
-    ...FONTS.regular,
-    fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
   },
   existingReviewCard: {
     backgroundColor: COLORS.white,

@@ -10,6 +10,9 @@ import java.util.List;
 
 @Data
 public class ReviewRequest {
+    @NotBlank(message = "User ID is required")
+    private String userId;
+    
     @NotBlank(message = "Destination ID is required")
     private String destinationId;
     

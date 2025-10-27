@@ -2,6 +2,7 @@ import { Review } from '../types';
 import { HttpClient, API_CONFIG } from './config';
 
 export interface CreateReviewRequest {
+  userId: string;
   destinationId: string;
   rating: number;
   comment: string;

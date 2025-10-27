@@ -392,7 +392,7 @@ const ExploreScreen = () => {
                       <View style={styles.ratingContainer}>
                         <Ionicons name="star" size={12} color={COLORS.rating} />
                         <Text style={styles.ratingText}>
-                          {destination.rating}
+                          {destination.rating || 0}
                         </Text>
                       </View>
                       <Text style={styles.price}>${destination.price}</Text>

@@ -24,22 +24,13 @@ public class ReviewController {
     public ResponseEntity<ApiResponse<Review>> createReview(@Valid @RequestBody ReviewRequest request) {
         try {
             // Check if user already reviewed this destination
-            if (reviewService.hasUserReviewedDestination("dummy-user-id", request.getDestinationId())) {
+            if (reviewService.hasUserReviewedDestination(request.getUserId(), request.getDestinationId())) {
                 return ResponseEntity.badRequest()
                     .body(ApiResponse.error("You have already reviewed this destination"));
             }
             
-            Review review = new Review();
-            review.setUserId("dummy-user-id"); // TODO: Get from JWT token
-            review.setDestinationId(request.getDestinationId());
-            review.setUserName("Current User"); // TODO: Get from user context
-            review.setUserAvatar("https://via.placeholder.com/150"); // TODO: Get from user context
-            review.setRating(request.getRating());
-            review.setComment(request.getComment());
-            review.setImages(request.getImages());
-            
-            Review savedReview = reviewService.createReview(review);
-            return ResponseEntity.ok(ApiResponse.success("Review created successfully", savedReview));
+            Review review = reviewService.createReviewFromRequest(request);
+            return ResponseEntity.ok(ApiResponse.success("Review created successfully", review));
             
         } catch (Exception e) {
             return ResponseEntity.badRequest()

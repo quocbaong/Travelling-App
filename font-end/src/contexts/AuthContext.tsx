@@ -317,6 +317,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (user) {
       try {
         await reviewService.createReview({
+          userId: user.id,
           destinationId: review.destinationId,
           rating: review.rating,
           comment: review.comment,

@@ -1,9 +1,12 @@
 package fit.se.travelling_app_be.service;
 
+import fit.se.travelling_app_be.dto.request.ReviewRequest;
 import fit.se.travelling_app_be.entity.Destination;
 import fit.se.travelling_app_be.entity.Review;
+import fit.se.travelling_app_be.entity.User;
 import fit.se.travelling_app_be.repository.DestinationRepository;
 import fit.se.travelling_app_be.repository.ReviewRepository;
+import fit.se.travelling_app_be.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +19,29 @@ public class ReviewService {
     
     private final ReviewRepository reviewRepository;
     private final DestinationRepository destinationRepository;
+    private final UserRepository userRepository;
+    
+    public Review createReviewFromRequest(ReviewRequest request) {
+        // Get user info
+        User user = userRepository.findById(request.getUserId())
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        Review review = new Review();
+        review.setUserId(request.getUserId());
+        review.setDestinationId(request.getDestinationId());
+        review.setUserName(user.getFullName() != null ? user.getFullName() : "User");
+        review.setUserAvatar(user.getAvatar());
+        review.setRating(request.getRating());
+        review.setComment(request.getComment());
+        review.setImages(request.getImages());
+        
+        Review savedReview = reviewRepository.save(review);
+        
+        // Update destination rating
+        updateDestinationRating(review.getDestinationId());
+        
+        return savedReview;
+    }
     
     public Review createReview(Review review) {
         Review savedReview = reviewRepository.save(review);

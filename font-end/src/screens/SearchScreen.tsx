@@ -291,7 +291,7 @@ const SearchScreen = () => {
                             color="#FFD700"
                           />
                           <Text style={styles.ratingText}>
-                            {destination.rating}
+                            {destination.rating || 0}
                           </Text>
                         </View>
                         <Text style={styles.price}>${destination.price}</Text>

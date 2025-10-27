@@ -11,13 +11,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
-import { RootStackParamList } from '../types';
-import { userService, destinationService } from '../api';
+import { RootStackParamList, Destination, Review } from '../types';
+import { userService, destinationService, reviewService } from '../api';
 import { Button } from '../components';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -32,14 +32,49 @@ const HEADER_SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
 const DestinationDetailScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<RouteProps>();
-  const { destination } = route.params;
+  const { destination: initialDestination } = route.params;
   const { isGuest, user, addFavorite, removeFavorite, setPendingTour, userReviews } = useAuth();
 
+  const [destination, setDestination] = useState<Destination>(initialDestination);
   const [isFavorite, setIsFavorite] = useState(
     user?.favorites?.includes(destination.id) || false
   );
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const scrollY = useRef(new Animated.Value(0)).current;
+
+  // Fetch fresh destination data from server
+  const refreshDestination = async () => {
+    try {
+      const freshDestination = await destinationService.getDestinationById(destination.id);
+      if (freshDestination) {
+        console.log('🔄 Refreshed destination:', freshDestination.name, 'Rating:', freshDestination.rating);
+        setDestination(freshDestination);
+      }
+    } catch (error) {
+      console.error('Failed to refresh destination:', error);
+    }
+  };
+
+  // Fetch reviews for this destination
+  const loadReviews = async () => {
+    try {
+      const destinationReviews = await reviewService.getReviewsByDestination(destination.id);
+      console.log('📝 Loaded reviews:', destinationReviews.length);
+      setReviews(destinationReviews);
+    } catch (error) {
+      console.error('Failed to load reviews:', error);
+      setReviews([]);
+    }
+  };
+
+  // Refresh when screen comes into focus (e.g., after submitting a review)
+  useFocusEffect(
+    React.useCallback(() => {
+      refreshDestination();
+      loadReviews();
+    }, [destination.id])
+  );
 
   // Update favorite status when user favorites change
   useEffect(() => {
@@ -52,16 +87,25 @@ const DestinationDetailScreen = () => {
       review.destinationId === destination.id
     );
     
+    // If no reviews at all, return original rating or 0
     if (destinationReviews.length === 0) {
-      return destination.rating;
+      return destination.rating || 0;
     }
     
     const totalRating = destinationReviews.reduce((sum, review) => sum + review.rating, 0);
     const averageRating = totalRating / destinationReviews.length;
     
+    // If destination has no original rating or review count, just use new reviews average
+    if (!destination.rating || !destination.reviews) {
+      return Math.round(averageRating * 10) / 10;
+    }
+    
     // Combine with original rating (weighted average)
-    const combinedRating = (destination.rating * destination.reviews + averageRating * destinationReviews.length) / 
-                          (destination.reviews + destinationReviews.length);
+    // Original: (rating * review_count) + new reviews, then divide by total count
+    const originalTotalRating = destination.rating * destination.reviews;
+    const newTotalRating = totalRating;
+    const totalReviews = destination.reviews + destinationReviews.length;
+    const combinedRating = (originalTotalRating + newTotalRating) / totalReviews;
     
     return Math.round(combinedRating * 10) / 10; // Round to 1 decimal place
   };
@@ -313,21 +357,57 @@ const DestinationDetailScreen = () => {
           <View style={styles.section}>
             <View style={styles.reviewsHeader}>
               <Text style={styles.sectionTitle}>Đánh giá</Text>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Reviews', { destinationId: destination.id })}
-              >
-                <Text style={styles.seeAll}>Xem tất cả</Text>
-              </TouchableOpacity>
+              {reviews.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Reviews', { destinationId: destination.id })}
+                >
+                  <Text style={styles.seeAll}>Xem tất cả</Text>
+                </TouchableOpacity>
+              )}
             </View>
-            <View style={styles.reviewSummary}>
-              <View style={styles.reviewScore}>
-                <Text style={styles.reviewScoreText}>{getRealTimeRating()}</Text>
-                <Ionicons name="star" size={24} color={COLORS.rating} />
+            
+            {reviews.length > 0 ? (
+              <View>
+                {reviews.slice(0, 3).map((review, index) => (
+                  <View key={review.id || index} style={styles.reviewItem}>
+                    <View style={styles.reviewHeader}>
+                      <View style={styles.reviewUser}>
+                        <Image
+                          source={{ uri: review.userAvatar || 'https://via.placeholder.com/40' }}
+                          style={styles.reviewAvatar}
+                        />
+                        <View>
+                          <Text style={styles.reviewUserName}>{review.userName || 'User'}</Text>
+                          <View style={styles.reviewRating}>
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Ionicons
+                                key={star}
+                                name="star"
+                                size={14}
+                                color={star <= review.rating ? COLORS.rating : COLORS.lightGray}
+                              />
+                            ))}
+                          </View>
+                        </View>
+                      </View>
+                      <Text style={styles.reviewDate}>
+                        {review.createdAt 
+                          ? new Date(review.createdAt).toLocaleDateString('vi-VN')
+                          : 'Hôm nay'}
+                      </Text>
+                    </View>
+                    <Text style={styles.reviewComment} numberOfLines={3}>
+                      {review.comment}
+                    </Text>
+                  </View>
+                ))}
               </View>
-              <Text style={styles.reviewCount}>
-                Dựa trên {getRealTimeReviewsCount()} đánh giá
-              </Text>
-            </View>
+            ) : (
+              <View style={styles.noReviews}>
+                <Ionicons name="chatbubble-outline" size={48} color={COLORS.lightGray} />
+                <Text style={styles.noReviewsText}>Chưa có đánh giá nào</Text>
+              </View>
+            )}
           </View>
 
           {/* Bottom Spacing */}
@@ -556,8 +636,9 @@ const styles = StyleSheet.create({
   },
   seeAll: {
     ...FONTS.semiBold,
-    fontSize: SIZES.body2,
     color: COLORS.primary,
+    fontSize: SIZES.body1,
+    marginBottom: SIZES.md,
   },
   reviewSummary: {
     flexDirection: 'row',
@@ -582,6 +663,61 @@ const styles = StyleSheet.create({
     ...FONTS.regular,
     fontSize: SIZES.body2,
     color: COLORS.textSecondary,
+  },
+  reviewItem: {
+    backgroundColor: COLORS.veryLightGray,
+    borderRadius: SIZES.radiusMd,
+    padding: SIZES.md,
+    marginBottom: SIZES.sm,
+  },
+  reviewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: SIZES.sm,
+  },
+  reviewUser: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SIZES.sm,
+    flex: 1,
+  },
+  reviewAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.lightGray,
+  },
+  reviewUserName: {
+    ...FONTS.semiBold,
+    fontSize: SIZES.body1,
+    color: COLORS.text,
+  },
+  reviewRating: {
+    flexDirection: 'row',
+    gap: 2,
+    marginTop: 2,
+  },
+  reviewDate: {
+    ...FONTS.regular,
+    fontSize: SIZES.body2,
+    color: COLORS.textSecondary,
+  },
+  reviewComment: {
+    ...FONTS.regular,
+    fontSize: SIZES.body1,
+    color: COLORS.text,
+    lineHeight: 20,
+  },
+  noReviews: {
+    alignItems: 'center',
+    paddingVertical: SIZES.xl,
+  },
+  noReviewsText: {
+    ...FONTS.regular,
+    fontSize: SIZES.body1,
+    color: COLORS.textSecondary,
+    marginTop: SIZES.sm,
   },
   bottomBar: {
     position: 'absolute',
