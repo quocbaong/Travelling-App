@@ -25,7 +25,7 @@ export interface AuthResponse {
 
 class AuthService {
   async login(credentials: LoginRequest): Promise<AuthResponse> {
-    const response = await HttpClient.post<AuthResponse>(API_CONFIG.ENDPOINTS.LOGIN, credentials);
+    const response = await HttpClient.post<any>(API_CONFIG.ENDPOINTS.LOGIN, credentials);
     
     // Store token for future requests
     if (response.token) {
@@ -33,11 +33,18 @@ class AuthService {
       AsyncStorage.setItem('user_id', response.user.id);
     }
     
-    return response;
+    // Map fullName to name if it exists
+    return {
+      ...response,
+      user: {
+        ...response.user,
+        name: response.user.name || response.user.fullName || 'User',
+      },
+    };
   }
 
   async register(userData: RegisterRequest): Promise<AuthResponse> {
-    const response = await HttpClient.post<AuthResponse>(API_CONFIG.ENDPOINTS.REGISTER, userData);
+    const response = await HttpClient.post<any>(API_CONFIG.ENDPOINTS.REGISTER, userData);
     
     // Store token for future requests
     if (response.token) {
@@ -45,7 +52,14 @@ class AuthService {
       AsyncStorage.setItem('user_id', response.user.id);
     }
     
-    return response;
+    // Map fullName to name if it exists
+    return {
+      ...response,
+      user: {
+        ...response.user,
+        name: response.user.name || response.user.fullName || 'User',
+      },
+    };
   }
 
   async logout(): Promise<void> {

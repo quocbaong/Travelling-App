@@ -191,6 +191,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUserBookings([]);
     setUserFavorites([]);
     setUserReviews([]);
+    setPendingScreen(null); // Clear pending screen on logout
+    setPendingTourBooking(null); // Clear pending tour on logout
   };
 
   const clearAsyncStorage = async () => {
@@ -199,6 +201,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUserBookings([]);
     setUserFavorites([]);
     setUserReviews([]);
+    setPendingScreen(null); // Clear pending screen
+    setPendingTourBooking(null); // Clear pending tour
   };
 
   const requireAuth = (): boolean => {

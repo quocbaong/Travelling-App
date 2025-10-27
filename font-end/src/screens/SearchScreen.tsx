@@ -168,7 +168,7 @@ const SearchScreen = () => {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {searchQuery.length === 0 && (
-          <View animation="fadeIn" style={styles.section}>
+          <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Tìm kiếm gần đây</Text>
               {recentSearches.length > 0 && (
@@ -181,8 +181,6 @@ const SearchScreen = () => {
               {recentSearches.map((search, index) => (
                 <View
                   key={index}
-                  animation="fadeInRight"
-                  delay={index * 50}
                 >
                   <TouchableOpacity
                     style={styles.recentItem}
@@ -212,7 +210,7 @@ const SearchScreen = () => {
         )}
 
         {searchQuery.length > 0 && searchResults.length === 0 && !searching && (
-          <View animation="fadeIn" style={styles.emptyState}>
+          <View style={styles.emptyState}>
             <Ionicons name="search-outline" size={64} color={COLORS.gray} />
             <Text style={styles.emptyTitle}>
               {searchQuery.length < 3
@@ -226,7 +224,7 @@ const SearchScreen = () => {
         )}
 
         {searchResults.length > 0 && (
-          <View animation="fadeIn" style={styles.section}>
+          <View style={styles.section}>
             <Text style={styles.sectionTitle}>
               Kết quả ({searchResults.length})
             </Text>
@@ -234,8 +232,6 @@ const SearchScreen = () => {
               {searchResults.map((destination, index) => (
                 <View
                   key={destination.id}
-                  animation="fadeInUp"
-                  delay={index * 50}
                   style={styles.resultItem}
                 >
                   <TouchableOpacity

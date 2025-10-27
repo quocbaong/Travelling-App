@@ -44,17 +44,17 @@ const PersonalInfoScreen = () => {
       console.log('🔍 PersonalInfoScreen - User email:', user.email);
       
       setFormData({
-        name: user.name || user.fullName || user.firstName || '',
+        name: user.name || '',
         email: user.email || '',
         phone: user.phone || '',
-        dateOfBirth: user.dateOfBirth || '',
-        gender: user.gender || '',
-        address: user.address || '',
+        dateOfBirth: (user as any).dateOfBirth || '',
+        gender: (user as any).gender || '',
+        address: (user as any).address || '',
         avatar: user.avatar || '',
       });
       
       console.log('🔍 PersonalInfoScreen - FormData after set:', {
-        name: user.name || user.fullName || user.firstName || '',
+        name: user.name || '',
         email: user.email || '',
       });
     }
@@ -79,7 +79,7 @@ const PersonalInfoScreen = () => {
 
                 console.log('Opening image library...');
                 const result = await ImagePicker.launchImageLibraryAsync({
-                  mediaTypes: ['images'],
+                  mediaTypes: ImagePicker.MediaTypeOptions.Images,
                   allowsEditing: false,
                   quality: 0.8,
                 });
@@ -102,7 +102,7 @@ const PersonalInfoScreen = () => {
                 }
               } catch (error) {
                 console.error('Error opening image library:', error);
-                Alert.alert('Lỗi', 'Không thể mở thư viện ảnh: ' + error.message);
+                Alert.alert('Lỗi', 'Không thể mở thư viện ảnh: ' + (error as any).message);
               }
             }
           },
@@ -117,7 +117,7 @@ const PersonalInfoScreen = () => {
                 }
 
                 const result = await ImagePicker.launchCameraAsync({
-                  mediaTypes: ['images'],
+                  mediaTypes: ImagePicker.MediaTypeOptions.Images,
                   allowsEditing: false,
                   quality: 0.8,
                 });
@@ -136,7 +136,7 @@ const PersonalInfoScreen = () => {
                 }
               } catch (error) {
                 console.error('Error opening camera:', error);
-                Alert.alert('Lỗi', 'Không thể mở camera: ' + error.message);
+                Alert.alert('Lỗi', 'Không thể mở camera: ' + (error as any).message);
               }
             }
           },
@@ -168,7 +168,7 @@ const PersonalInfoScreen = () => {
       gender: formData.gender,
       address: formData.address,
       avatar: formData.avatar,
-    });
+    } as any);
     
     setIsEditing(false);
   };
@@ -203,9 +203,9 @@ const PersonalInfoScreen = () => {
         name: user.name || '',
         email: user.email || '',
         phone: user.phone || '',
-        dateOfBirth: user.dateOfBirth || '',
-        gender: user.gender || '',
-        address: user.address || '',
+        dateOfBirth: (user as any).dateOfBirth || '',
+        gender: (user as any).gender || '',
+        address: (user as any).address || '',
         avatar: user.avatar || '',
       });
     }
@@ -274,7 +274,7 @@ const PersonalInfoScreen = () => {
                     />
                   ) : (
                     <Text style={styles.infoValue}>
-                      {formData.name || user?.name || user?.fullName || user?.firstName || 'Chưa cập nhật'}
+                      {formData.name || user?.name || 'Chưa cập nhật'}
                     </Text>
                   )}
                 </View>

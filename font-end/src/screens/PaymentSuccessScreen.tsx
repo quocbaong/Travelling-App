@@ -22,12 +22,18 @@ type RouteProps = RouteProp<RootStackParamList, 'PaymentSuccess'>;
 const PaymentSuccessScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<RouteProps>();
-  const { destination, services, departureDate, returnDate, participants, totalPrice, selectedServices, paymentMethod } = route.params;
+  const { destination, services } = route.params;
+  const departureDate = (route.params as any).departureDate;
+  const returnDate = (route.params as any).returnDate;
+  const participants = (route.params as any).participants;
+  const totalPrice = (route.params as any).totalPrice;
+  const selectedServices = (route.params as any).selectedServices;
+  const paymentMethod = (route.params as any).paymentMethod;
 
   // Removed auto redirect - user will manually navigate
 
   const handleViewBookings = () => {
-    navigation.replace('MainTabs', { screen: 'Bookings' });
+    (navigation as any).replace('MainTabs', { screen: 'Bookings' });
   };
 
   const handleBackToHome = () => {

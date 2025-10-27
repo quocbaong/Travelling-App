@@ -191,14 +191,14 @@ const LanguageScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.lightGray,
+    backgroundColor: COLORS.veryLightGray,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: SIZES.padding,
-    paddingVertical: SIZES.base,
+    paddingHorizontal: SIZES.lg,
+    paddingVertical: SIZES.md,
     backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.lightGray,
@@ -207,7 +207,8 @@ const styles = StyleSheet.create({
     padding: SIZES.xs,
   },
   title: {
-    ...FONTS.h3,
+    ...FONTS.bold,
+    fontSize: SIZES.h3,
     color: COLORS.text,
   },
   placeholder: {
@@ -215,37 +216,41 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: SIZES.padding,
+    padding: SIZES.lg,
   },
   card: {
     backgroundColor: COLORS.white,
     borderRadius: SIZES.radius,
-    padding: SIZES.padding,
-    marginBottom: SIZES.base,
+    padding: SIZES.lg,
+    marginBottom: SIZES.md,
   },
   sectionTitle: {
-    ...FONTS.h3,
+    ...FONTS.bold,
+    fontSize: SIZES.h3,
     color: COLORS.text,
     marginBottom: SIZES.xs,
   },
   sectionDescription: {
-    ...FONTS.body2,
+    ...FONTS.regular,
+    fontSize: SIZES.body2,
     color: COLORS.gray,
-    marginBottom: SIZES.base,
+    marginBottom: SIZES.md,
   },
   previewContainer: {
-    backgroundColor: COLORS.lightPrimary,
+    backgroundColor: COLORS.primaryLight,
     borderRadius: SIZES.radius,
-    padding: SIZES.base,
+    padding: SIZES.md,
     alignItems: 'center',
   },
   previewTitle: {
-    ...FONTS.h3,
+    ...FONTS.bold,
+    fontSize: SIZES.h3,
     color: COLORS.primary,
     marginBottom: SIZES.xs,
   },
   previewDescription: {
-    ...FONTS.body2,
+    ...FONTS.regular,
+    fontSize: SIZES.body2,
     color: COLORS.text,
     textAlign: 'center',
   },
@@ -253,13 +258,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: SIZES.base,
-    paddingHorizontal: SIZES.base,
+    paddingVertical: SIZES.md,
+    paddingHorizontal: SIZES.md,
     borderRadius: SIZES.radius,
     marginVertical: SIZES.xs / 2,
   },
   selectedLanguageItem: {
-    backgroundColor: COLORS.lightPrimary,
+    backgroundColor: COLORS.primaryLight,
     borderWidth: 1,
     borderColor: COLORS.primary,
   },
@@ -270,7 +275,7 @@ const styles = StyleSheet.create({
   },
   languageFlag: {
     fontSize: 24,
-    marginRight: SIZES.base,
+    marginRight: SIZES.md,
   },
   languageInfo: {
     flex: 1,
@@ -284,7 +289,8 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
   },
   languageNativeName: {
-    ...FONTS.body2,
+    ...FONTS.regular,
+    fontSize: SIZES.body2,
     color: COLORS.gray,
   },
   divider: {
@@ -293,7 +299,7 @@ const styles = StyleSheet.create({
     marginLeft: 56,
   },
   infoContainer: {
-    marginTop: SIZES.base,
+    marginTop: SIZES.md,
   },
   infoItem: {
     flexDirection: 'row',
@@ -301,17 +307,18 @@ const styles = StyleSheet.create({
     marginBottom: SIZES.xs,
   },
   infoText: {
-    ...FONTS.body2,
+    ...FONTS.regular,
+    fontSize: SIZES.body2,
     color: COLORS.text,
     marginLeft: SIZES.xs,
   },
   saveButton: {
     backgroundColor: COLORS.primary,
     borderRadius: SIZES.radius,
-    padding: SIZES.base,
+    padding: SIZES.md,
     alignItems: 'center',
-    marginTop: SIZES.base,
-    marginBottom: SIZES.padding,
+    marginTop: SIZES.md,
+    marginBottom: SIZES.lg,
   },
   saveButtonText: {
     ...FONTS.semiBold,

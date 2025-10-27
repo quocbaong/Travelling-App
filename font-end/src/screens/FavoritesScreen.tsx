@@ -42,7 +42,6 @@ const FavoritesScreen = () => {
 
   const handleFavoritePress = async (destinationId: string) => {
     try {
-      await userService.toggleFavorite(destinationId);
       removeFavorite(destinationId);
     } catch (error) {
       console.error('Error removing favorite:', error);

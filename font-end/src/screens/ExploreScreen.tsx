@@ -37,7 +37,6 @@ const ExploreScreen = () => {
     countries: [],
     ratingRange: { min: 0, max: 5 },
     category: null,
-    duration: null,
   });
 
 
@@ -108,15 +107,6 @@ const ExploreScreen = () => {
     }
   };
 
-  const applyFilters = async () => {
-    const filters: SearchFilters = {
-      searchQuery: searchQuery || undefined,
-      category: selectedCategory || undefined,
-    };
-
-    const results = await destinationService.searchDestinations(filters);
-    setFilteredDestinations(results);
-  };
 
   const applyAdvancedFilters = (filters: FilterOptions) => {
     setCurrentFilters(filters);
@@ -138,7 +128,6 @@ const ExploreScreen = () => {
     if (!searchQuery && !effectiveCategory && 
         filters.countries.length === 0 && 
         (filters.ratingRange.min === 0 && filters.ratingRange.max === 5) && 
-        !filters.duration && 
         filters.priceRange.min === 0 && filters.priceRange.max === 9999) {
       console.log(`📊 No filters active, showing first 10 destinations`);
       setFilteredDestinations(destinations.slice(0, 10));
@@ -221,24 +210,6 @@ const ExploreScreen = () => {
       console.log(`📊 After rating filter: ${filtered.length} destinations`);
     }
 
-    if (filters.duration) {
-      console.log(`📊 Before duration filter: ${filtered.length} destinations`);
-      filtered = filtered.filter(dest => {
-        const duration = dest.duration.toLowerCase();
-        if (filters.duration === '1-3 ngày') {
-          return duration.includes('1') || duration.includes('2') || duration.includes('3');
-        } else if (filters.duration === '4-7 ngày') {
-          return duration.includes('4') || duration.includes('5') || duration.includes('6') || duration.includes('7');
-        } else if (filters.duration === '8-14 ngày') {
-          return duration.includes('8') || duration.includes('9') || duration.includes('10') || 
-                 duration.includes('11') || duration.includes('12') || duration.includes('13') || duration.includes('14');
-        } else if (filters.duration === 'Trên 14 ngày') {
-          return parseInt(duration) > 14;
-        }
-        return true;
-      });
-      console.log(`📊 After duration filter: ${filtered.length} destinations`);
-    }
 
     console.log(`📊 Final filtered results: ${filtered.length} destinations`);
     console.log(`📊 Final destinations:`, filtered.slice(0, 3).map(d => ({ 
@@ -261,7 +232,6 @@ const ExploreScreen = () => {
       countries: [],
       ratingRange: { min: 0, max: 5 },
       category: null,
-      duration: null,
     });
     setFilteredDestinations(destinations.slice(0, 10));
   };

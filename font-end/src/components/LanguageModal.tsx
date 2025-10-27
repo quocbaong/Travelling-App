@@ -139,15 +139,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: SIZES.padding,
-    paddingVertical: SIZES.base,
+    paddingHorizontal: SIZES.lg,
+    paddingVertical: SIZES.md,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.lightGray,
   },
   headerTitle: {
-    ...FONTS.h4,
+    ...FONTS.bold,
+    fontSize: SIZES.h4,
     color: COLORS.text,
-    fontWeight: 'bold',
   },
   closeButton: {
     width: 32,
@@ -164,13 +164,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: SIZES.padding,
-    paddingVertical: SIZES.base,
+    paddingHorizontal: SIZES.lg,
+    paddingVertical: SIZES.md,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.lightGray,
   },
   selectedLanguageItem: {
-    backgroundColor: COLORS.lightPrimary,
+    backgroundColor: COLORS.primaryLight,
   },
   languageLeft: {
     flexDirection: 'row',
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   },
   languageFlag: {
     fontSize: 24,
-    marginRight: SIZES.base,
+    marginRight: SIZES.md,
   },
   languageInfo: {
     flex: 1,
@@ -193,7 +193,8 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
   },
   languageNativeName: {
-    ...FONTS.body2,
+    ...FONTS.regular,
+    fontSize: SIZES.body2,
     color: COLORS.gray,
   },
 });

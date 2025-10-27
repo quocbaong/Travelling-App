@@ -41,14 +41,15 @@ interface BookingSummary {
 const PaymentScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<RouteProps>();
-  const { destination, services, departureDate, returnDate, participants, totalPrice } = route.params;
+  const { destination, services } = route.params;
+  const departureDate = (route.params as any).departureDate;
+  const returnDate = (route.params as any).returnDate;
+  const participants = (route.params as any).participants || 1;
+  const totalPrice = (route.params as any).totalPrice;
   const { addBooking, user } = useAuth();
   const [selectedPayment, setSelectedPayment] = useState<string>('');
   const [processing, setProcessing] = useState(false);
 
-  // Use totalPrice from TourServicesScreen (already calculated with participants)
-  const finalTotalPrice = totalPrice || calculateTotalPrice();
-  
   // Calculate total price based on selected services (fallback method)
   const calculateTotalPrice = () => {
     let total = destination.price;
@@ -60,6 +61,9 @@ const PaymentScreen = () => {
     });
     return total * (participants || 1);
   };
+
+  // Use totalPrice from TourServicesScreen (already calculated with participants)
+  const finalTotalPrice = totalPrice || calculateTotalPrice();
 
   const getServiceName = (serviceId: string): string => {
     const serviceNames: Record<string, string> = {
@@ -158,12 +162,6 @@ const PaymentScreen = () => {
     navigation.navigate('PaymentSuccess', { 
       destination, 
       services: bookingSummary.services,
-      departureDate,
-      returnDate,
-      participants,
-      totalPrice: bookingSummary.total,
-      selectedServices: services,
-      paymentMethod: selectedPayment
     });
   };
 

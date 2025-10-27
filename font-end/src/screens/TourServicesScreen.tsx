@@ -168,7 +168,7 @@ const TourServicesScreen = () => {
       return;
     }
     
-    navigation.navigate('Payment', { 
+    (navigation as any).navigate('Payment', { 
       destination, 
       services: selectedServices,
       departureDate,
@@ -289,7 +289,7 @@ const TourServicesScreen = () => {
 
         <View style={styles.content}>
           {/* Main Packages */}
-          <View animation="fadeInUp" delay={200} style={styles.section}>
+          <View style={styles.section}>
             <Text style={styles.sectionTitle}>Gói dịch vụ chính</Text>
             <Text style={styles.sectionSubtitle}>
               Chọn 1 gói dịch vụ chính (bắt buộc)
@@ -298,8 +298,6 @@ const TourServicesScreen = () => {
             {tourServices.filter(service => ['1', '2', '3'].includes(service.id)).map((service, index) => (
               <View
                 key={service.id}
-                animation="fadeInUp"
-                delay={300 + index * 100}
               >
                 <TouchableOpacity
                   style={[
@@ -362,7 +360,7 @@ const TourServicesScreen = () => {
           </View>
 
           {/* Add-on Services */}
-          <View animation="fadeInUp" delay={400} style={styles.section}>
+          <View style={styles.section}>
             <Text style={styles.sectionTitle}>Dịch vụ bổ sung</Text>
             <Text style={styles.sectionSubtitle}>
               Chọn thêm các dịch vụ bổ sung (tùy chọn)
@@ -371,8 +369,6 @@ const TourServicesScreen = () => {
             {tourServices.filter(service => !['1', '2', '3'].includes(service.id)).map((service, index) => (
               <View
                 key={service.id}
-                animation="fadeInUp"
-                delay={500 + index * 100}
               >
                 <TouchableOpacity
                   style={[
@@ -433,7 +429,7 @@ const TourServicesScreen = () => {
           </View>
 
           {/* Summary */}
-          <View animation="fadeInUp" delay={700} style={styles.summaryCard}>
+          <View style={styles.summaryCard}>
             <Text style={styles.summaryTitle}>Tóm tắt đơn hàng</Text>
             
             <View style={styles.summaryItem}>
@@ -464,7 +460,7 @@ const TourServicesScreen = () => {
       </ScrollView>
 
       {/* Bottom Action */}
-      <View animation="fadeInUp" style={styles.bottomAction}>
+      <View style={styles.bottomAction}>
         <View style={styles.priceContainer}>
           <Text style={styles.priceLabel}>Tổng cộng</Text>
           <Text style={styles.priceValue}>${totalPrice}</Text>
@@ -809,6 +805,25 @@ const styles = StyleSheet.create({
   continueButton: {
     flex: 1,
     marginLeft: SIZES.md,
+  },
+  serviceCheckbox: {
+    position: 'absolute',
+    top: SIZES.md,
+    right: SIZES.md,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: COLORS.gray,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.white,
+  },
+  checkboxSelected: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
 });
 

@@ -142,8 +142,8 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: COLORS.primary,
-    paddingHorizontal: SIZES.padding,
-    paddingVertical: SIZES.base * 2,
+    paddingHorizontal: SIZES.lg,
+    paddingVertical: SIZES.lg,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: SIZES.base,
+    marginRight: SIZES.md,
   },
   headerTextContainer: {
     flex: 1,
@@ -166,10 +166,10 @@ const styles = StyleSheet.create({
   },
   sectionCard: {
     backgroundColor: COLORS.white,
-    marginHorizontal: SIZES.padding,
-    marginTop: SIZES.base * 2,
-    marginBottom: SIZES.base,
-    padding: SIZES.padding,
+    marginHorizontal: SIZES.lg,
+    marginTop: SIZES.lg,
+    marginBottom: SIZES.md,
+    padding: SIZES.lg,
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -181,13 +181,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: SIZES.base,
+    marginBottom: SIZES.md,
   },
   modeItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: SIZES.base,
+    paddingVertical: SIZES.md,
   },
   modeItemLeft: {
     flexDirection: 'row',
@@ -198,10 +198,10 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: COLORS.lightPrimary,
+    backgroundColor: COLORS.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: SIZES.base,
+    marginRight: SIZES.md,
   },
   modeInfo: {
     flex: 1,
@@ -245,16 +245,16 @@ const styles = StyleSheet.create({
   infoItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    paddingVertical: SIZES.base,
+    paddingVertical: SIZES.md,
   },
   infoIcon: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: COLORS.lightInfo,
+    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: SIZES.base,
+    marginRight: SIZES.md,
   },
   infoInfo: {
     flex: 1,
@@ -273,19 +273,19 @@ const styles = StyleSheet.create({
   previewCard: {
     backgroundColor: '#f8f9fa',
     borderRadius: 8,
-    padding: SIZES.base,
+    padding: SIZES.md,
   },
   previewHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SIZES.base,
+    marginBottom: SIZES.md,
   },
   previewAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: '#e0e0e0',
-    marginRight: SIZES.base,
+    marginRight: SIZES.md,
   },
   previewInfo: {
     flex: 1,
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
     width: '40%',
   },
   previewContent: {
-    marginTop: SIZES.base,
+    marginTop: SIZES.md,
   },
   previewLine3: {
     height: 10,

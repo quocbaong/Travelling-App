@@ -5,7 +5,13 @@ class UserService {
   async getCurrentUser(userId: string): Promise<User> {
     // Add timestamp to force fresh data
     const timestamp = Date.now();
-    return HttpClient.get<User>(`${API_CONFIG.ENDPOINTS.USER}/${userId}?t=${timestamp}`);
+    const response = await HttpClient.get<any>(`${API_CONFIG.ENDPOINTS.USER}/${userId}?t=${timestamp}`);
+    
+    // Map fullName to name if it exists
+    return {
+      ...response,
+      name: response.name || response.fullName || 'User',
+    };
   }
 
   async updateUser(userId: string, updates: Partial<User>): Promise<User> {

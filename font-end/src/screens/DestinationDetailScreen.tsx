@@ -151,7 +151,7 @@ const DestinationDetailScreen = () => {
       if (isFavorite) {
         removeFavorite(destination.id);
       } else {
-        addFavorite(destination.id);
+        addFavorite(destination);
       }
       setIsFavorite(!isFavorite);
     } catch (error) {
@@ -320,8 +320,6 @@ const DestinationDetailScreen = () => {
               {destination.highlights.map((highlight, index) => (
                 <View
                   key={index}
-                  animation="fadeInLeft"
-                  delay={index * 50}
                   style={styles.highlightItem}
                 >
                   <View style={styles.highlightBullet}>
@@ -341,8 +339,6 @@ const DestinationDetailScreen = () => {
                 {destination.amenities.map((amenity, index) => (
                   <View
                     key={index}
-                    animation="zoomIn"
-                    delay={index * 50}
                     style={styles.amenityChip}
                   >
                     <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
@@ -477,7 +473,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.3)',
     alignItems: 'center',
     justifyContent: 'center',
-    backdropFilter: 'blur(10px)',
   },
   headerTitle: {
     ...FONTS.bold,

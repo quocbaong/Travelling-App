@@ -42,7 +42,7 @@ export const Button: React.FC<ButtonProps> = ({
   ];
 
   const textStyleCombined = [
-    styles.text,
+    styles.buttonText,
     styles[`${variant}Text`],
     styles[`${size}Text`],
     textStyle,
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     height: SIZES.buttonHeightLg,
   },
   // Text styles
-  text: {
+  buttonText: {
     ...FONTS.semiBold,
     fontSize: SIZES.body1,
   },

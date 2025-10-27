@@ -48,7 +48,7 @@ const LoginScreen = () => {
         clearPendingTour();
       } else if (pendingScreen) {
         // Navigate to the pending screen
-        navigation.replace('MainTabs', { screen: pendingScreen as any });
+        (navigation as any).replace('MainTabs', { screen: pendingScreen });
         clearPendingScreen();
       } else {
         navigation.replace('MainTabs');
@@ -72,7 +72,7 @@ const LoginScreen = () => {
         <View style={styles.headerContent}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => navigation.navigate('MainTabs', { screen: 'Home' })}
+            onPress={() => (navigation as any).navigate('MainTabs', { screen: 'Home' })}
           >
             <Ionicons name="arrow-back" size={24} color={COLORS.white} />
           </TouchableOpacity>

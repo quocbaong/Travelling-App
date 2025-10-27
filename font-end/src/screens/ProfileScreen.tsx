@@ -23,58 +23,55 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const ProfileScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const { user, isGuest, logout, userBookings, userFavorites, isLoading } = useAuth();
+  const { user, isGuest, logout, userBookings, userFavorites, isLoading, setPendingScreenAccess } = useAuth();
   const [loading, setLoading] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkModeEnabled, setDarkModeEnabled] = useState(false);
-
-  useEffect(() => {
-    if (isGuest) {
-      navigation.replace('Login');
-      return;
-    }
-    
-    // Debug user data
-    console.log('🔍 ProfileScreen - User data:', user);
-    console.log('🔍 ProfileScreen - User name:', user?.name);
-    console.log('🔍 ProfileScreen - User email:', user?.email);
-  }, [isGuest, navigation, user]);
 
   // Show loading if still loading user data
   if (isLoading) {
     return <Loading fullScreen />;
   }
 
-  // Don't render if guest
-  if (isGuest) {
-    return null;
-  }
+  // Function to check auth before navigating
+  const handleNavigateWithAuth = (screen: string, screenName: string) => {
+    if (isGuest) {
+      setPendingScreenAccess(screenName);
+      navigation.navigate('Login');
+      return;
+    }
+    navigation.navigate(screen as any);
+  };
 
   const menuItems = [
     {
       id: 'personal',
       title: 'Thông tin cá nhân',
       icon: 'person-outline',
-      onPress: () => navigation.navigate('PersonalInfo'),
+      onPress: () => handleNavigateWithAuth('PersonalInfo', 'Profile'),
+      requireAuth: true,
     },
     {
       id: 'payment',
       title: 'Phương thức thanh toán',
       icon: 'card-outline',
-      onPress: () => navigation.navigate('PaymentMethods'),
+      onPress: () => handleNavigateWithAuth('PaymentMethods', 'Profile'),
+      requireAuth: true,
     },
     {
       id: 'security',
       title: 'Bảo mật',
       icon: 'shield-checkmark-outline',
-      onPress: () => navigation.navigate('Security'),
+      onPress: () => handleNavigateWithAuth('Security', 'Profile'),
+      requireAuth: true,
     },
     {
       id: 'language',
       title: 'Ngôn ngữ',
       icon: 'language-outline',
       value: 'Tiếng Việt',
-      onPress: () => console.log('Language'),
+      onPress: () => navigation.navigate('Language'),
+      requireAuth: false,
     },
   ];
 
@@ -106,6 +103,11 @@ const ProfileScreen = () => {
   ];
 
   const handleLogout = () => {
+    if (isGuest) {
+      navigation.navigate('Login');
+      return;
+    }
+    
     Alert.alert(
       'Đăng xuất',
       'Bạn có chắc chắn muốn đăng xuất?',
@@ -121,6 +123,10 @@ const ProfileScreen = () => {
         },
       ]
     );
+  };
+  
+  const handleLogin = () => {
+    navigation.navigate('Login');
   };
 
   if (loading) {
@@ -138,43 +144,59 @@ const ProfileScreen = () => {
         {/* User Info Card */}
         <View style={styles.userCard}>
           <Image
-            source={{ uri: user?.avatar || DEFAULT_AVATAR }}
+            source={{ uri: isGuest ? DEFAULT_AVATAR : (user?.avatar || DEFAULT_AVATAR) }}
             style={styles.avatar}
           />
           <View style={styles.userInfo}>
             <Text style={styles.userName}>
-              {user?.name || 'User'}
+              {isGuest ? 'Guest' : (user?.name || 'User')}
             </Text>
             <Text style={styles.userEmail}>
-              {user?.email || 'user@example.com'}
+              {isGuest ? 'Đăng nhập để trải nghiệm đầy đủ' : (user?.email || 'user@example.com')}
             </Text>
           </View>
-          <TouchableOpacity 
-            style={styles.editButton}
-            onPress={() => navigation.navigate('PersonalInfo')}
-          >
-            <Ionicons name="create-outline" size={20} color={COLORS.primary} />
-          </TouchableOpacity>
+          {!isGuest && (
+            <TouchableOpacity 
+              style={styles.editButton}
+              onPress={() => handleNavigateWithAuth('PersonalInfo', 'Profile')}
+            >
+              <Ionicons name="create-outline" size={20} color={COLORS.primary} />
+            </TouchableOpacity>
+          )}
         </View>
 
+        {/* Login Button for Guest */}
+        {isGuest && (
+          <View style={styles.loginPrompt}>
+            <TouchableOpacity 
+              style={styles.loginButton}
+              onPress={handleLogin}
+            >
+              <Text style={styles.loginButtonText}>Đăng nhập</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Stats */}
-        <View style={styles.statsContainer}>
-          <TouchableOpacity 
-            style={styles.statItem}
-            onPress={() => navigation.navigate('Bookings')}
-          >
-            <Text style={styles.statValue}>{userBookings.length}</Text>
-            <Text style={styles.statLabel}>Chuyến đi</Text>
-          </TouchableOpacity>
-          <View style={styles.statDivider} />
-          <TouchableOpacity 
-            style={styles.statItem}
-            onPress={() => navigation.navigate('Favorites')}
-          >
-            <Text style={styles.statValue}>{userFavorites.length}</Text>
-            <Text style={styles.statLabel}>Yêu thích</Text>
-          </TouchableOpacity>
-        </View>
+        {!isGuest && (
+          <View style={styles.statsContainer}>
+            <TouchableOpacity 
+              style={styles.statItem}
+              onPress={() => handleNavigateWithAuth('Bookings', 'Bookings')}
+            >
+              <Text style={styles.statValue}>{userBookings.length}</Text>
+              <Text style={styles.statLabel}>Chuyến đi</Text>
+            </TouchableOpacity>
+            <View style={styles.statDivider} />
+            <TouchableOpacity 
+              style={styles.statItem}
+              onPress={() => handleNavigateWithAuth('Favorites', 'Favorites')}
+            >
+              <Text style={styles.statValue}>{userFavorites.length}</Text>
+              <Text style={styles.statLabel}>Yêu thích</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Settings Section */}
         <View style={styles.section}>
@@ -301,8 +323,14 @@ const ProfileScreen = () => {
             activeOpacity={0.8}
             onPress={handleLogout}
           >
-            <Ionicons name="log-out-outline" size={20} color={COLORS.error} />
-            <Text style={styles.logoutText}>Đăng xuất</Text>
+            <Ionicons 
+              name={isGuest ? "log-in-outline" : "log-out-outline"} 
+              size={20} 
+              color={isGuest ? COLORS.primary : COLORS.error} 
+            />
+            <Text style={[styles.logoutText, isGuest && styles.loginText]}>
+              {isGuest ? 'Đăng nhập' : 'Đăng xuất'}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -480,6 +508,26 @@ const styles = StyleSheet.create({
     ...FONTS.semiBold,
     fontSize: SIZES.body1,
     color: COLORS.error,
+  },
+  loginText: {
+    color: COLORS.primary,
+  },
+  loginPrompt: {
+    paddingHorizontal: SIZES.md,
+    marginTop: SIZES.md,
+    marginBottom: SIZES.lg,
+  },
+  loginButton: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: SIZES.md,
+    borderRadius: SIZES.radiusMd,
+    alignItems: 'center',
+    ...SHADOWS.medium,
+  },
+  loginButtonText: {
+    ...FONTS.bold,
+    fontSize: SIZES.body1,
+    color: COLORS.white,
   },
   versionContainer: {
     alignItems: 'center',

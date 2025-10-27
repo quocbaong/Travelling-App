@@ -630,11 +630,9 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.lightGray,
   },
   countryModalTitle: {
-    ...FONTS.h3,
+    ...FONTS.bold,
+    fontSize: SIZES.h3,
     color: COLORS.text,
-  },
-  closeButton: {
-    padding: SIZES.xs,
   },
   countryList: {
     flex: 1,
@@ -649,10 +647,11 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.lightGray,
   },
   selectedCountryItem: {
-    backgroundColor: COLORS.lightPrimary,
+    backgroundColor: COLORS.primaryLight,
   },
   countryItemText: {
-    ...FONTS.body1,
+    ...FONTS.regular,
+    fontSize: SIZES.body1,
     color: COLORS.text,
   },
   selectedCountryItemText: {

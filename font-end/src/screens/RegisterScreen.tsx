@@ -85,7 +85,7 @@ const RegisterScreen = () => {
         <View style={styles.headerContent}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => navigation.navigate('MainTabs', { screen: 'Home' })}
+            onPress={() => (navigation as any).navigate('MainTabs', { screen: 'Home' })}
           >
             <Ionicons name="arrow-back" size={24} color={COLORS.white} />
           </TouchableOpacity>
@@ -236,7 +236,7 @@ const RegisterScreen = () => {
             {/* Login Link */}
             <View style={styles.loginContainer}>
               <Text style={styles.loginText}>Đã có tài khoản? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('MainTabs', { screen: 'Home' })}>
+              <TouchableOpacity onPress={() => (navigation as any).navigate('MainTabs', { screen: 'Home' })}>
                 <Text style={styles.loginLink}>Đăng nhập ngay</Text>
               </TouchableOpacity>
             </View>

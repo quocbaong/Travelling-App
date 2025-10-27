@@ -230,7 +230,7 @@ const HomeScreen = () => {
             </TouchableOpacity>
             <View style={styles.greetingContainer}>
               <Text style={styles.greeting}>
-                {isGuest ? 'Hello, Guest!' : `Hello, ${user?.fullName || 'User'}!`}
+                {isGuest ? 'Hello, Guest!' : `Hello, ${user?.name || 'User'}!`}
               </Text>
             </View>
           </View>

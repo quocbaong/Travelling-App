@@ -44,10 +44,7 @@ const BookingDetailScreen = () => {
                 'Đặt chỗ đã được hủy thành công.',
                 [{ 
                   text: 'OK',
-                  onPress: () => {
-                    // Navigate về Home tab
-                    navigation.navigate('MainTabs', { screen: 'Home' });
-                  }
+                  onPress: () => navigation.goBack()
                 }]
               );
             } catch (error) {
@@ -260,7 +257,7 @@ const BookingDetailScreen = () => {
             <View style={styles.section}>
               <Button
                 title="Đánh giá tour"
-                onPress={() => navigation.navigate('TourReview', { booking })}
+                onPress={() => (navigation as any).navigate('TourReview', { booking })}
                 style={styles.reviewButton}
               />
             </View>
