@@ -15,11 +15,13 @@ import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 
 interface NotificationItem {
   id: string;
+  userId: string;
   title: string;
   message: string;
-  time: string;
-  type: 'info' | 'success' | 'warning' | 'promotion';
-  isRead: boolean;
+  type: string; // 'booking', 'payment', 'review', 'system'
+  read: boolean;
+  createdAt: string;
+  relatedId?: string;
 }
 
 interface NotificationModalProps {
@@ -28,6 +30,7 @@ interface NotificationModalProps {
   notifications: NotificationItem[];
   onMarkAllAsRead?: () => void;
   onNotificationRead?: (notificationId: string) => void;
+  onDeleteNotification?: (notificationId: string) => void;
 }
 
 const { height } = Dimensions.get('window');
@@ -38,39 +41,48 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
   notifications,
   onMarkAllAsRead,
   onNotificationRead,
+  onDeleteNotification,
 }) => {
-  const [localNotifications, setLocalNotifications] = useState(notifications);
-
-  useEffect(() => {
-    setLocalNotifications(notifications);
-  }, [notifications]);
-
   const handleMarkAllAsRead = () => {
-    const updatedNotifications = localNotifications.map(notification => ({
-      ...notification,
-      isRead: true
-    }));
-    setLocalNotifications(updatedNotifications);
     onMarkAllAsRead?.();
   };
 
   const handleNotificationPress = (notificationId: string) => {
-    const updatedNotifications = localNotifications.map(notification => 
-      notification.id === notificationId 
-        ? { ...notification, isRead: true }
-        : notification
-    );
-    setLocalNotifications(updatedNotifications);
     onNotificationRead?.(notificationId);
+  };
+
+  const handleDeleteNotification = (notificationId: string) => {
+    onDeleteNotification?.(notificationId);
+  };
+
+  const getTimeAgo = (createdAt: string) => {
+    try {
+      const now = new Date();
+      const created = new Date(createdAt);
+      const diffMs = now.getTime() - created.getTime();
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
+
+      if (diffMins < 1) return 'Vừa xong';
+      if (diffMins < 60) return `${diffMins} phút trước`;
+      if (diffHours < 24) return `${diffHours} giờ trước`;
+      if (diffDays < 30) return `${diffDays} ngày trước`;
+      return created.toLocaleDateString('vi-VN');
+    } catch (error) {
+      return 'Vừa xong';
+    }
   };
   const getIconName = (type: string) => {
     switch (type) {
-      case 'success':
-        return 'checkmark-circle';
-      case 'warning':
-        return 'warning';
-      case 'promotion':
-        return 'gift';
+      case 'booking':
+        return 'calendar';
+      case 'payment':
+        return 'card';
+      case 'review':
+        return 'star';
+      case 'system':
+        return 'notifications';
       default:
         return 'information-circle';
     }
@@ -78,12 +90,14 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
 
   const getIconColor = (type: string) => {
     switch (type) {
-      case 'success':
+      case 'booking':
         return COLORS.success;
-      case 'warning':
-        return COLORS.warning;
-      case 'promotion':
+      case 'payment':
         return COLORS.primary;
+      case 'review':
+        return COLORS.warning;
+      case 'system':
+        return COLORS.info;
       default:
         return COLORS.info;
     }
@@ -124,7 +138,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
           </LinearGradient>
 
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-            {localNotifications.length === 0 ? (
+            {notifications.length === 0 ? (
               <View style={styles.emptyState}>
                 <Ionicons
                   name="notifications-outline"
@@ -137,7 +151,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
                 </Text>
               </View>
             ) : (
-              localNotifications.map((notification, index) => {
+              notifications.map((notification, index) => {
                 return (
                   <View
                     key={notification.id}
@@ -145,21 +159,21 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
                     <TouchableOpacity
                       style={[
                         styles.notificationItem,
-                        !notification.isRead && styles.unreadItem,
+                        !notification.read && styles.unreadItem,
                       ]}
                       activeOpacity={0.7}
                       onPress={() => handleNotificationPress(notification.id)}
                     >
                       <View style={[
                         styles.notificationIcon,
-                        !notification.isRead && styles.unreadIcon
+                        !notification.read && styles.unreadIcon
                       ]}>
                         <Ionicons
                           name={getIconName(notification.type)}
                           size={20}
                           color={getIconColor(notification.type)}
                         />
-                        {!notification.isRead && (
+                        {!notification.read && (
                           <View style={styles.newBadge}>
                             <Text style={styles.newBadgeText}>NEW</Text>
                           </View>
@@ -169,12 +183,12 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
                     <View style={styles.notificationHeader}>
                         <Text style={[
                           styles.notificationTitle,
-                          !notification.isRead && styles.unreadTitle
+                          !notification.read && styles.unreadTitle
                         ]}>
                           {notification.title}
                         </Text>
                       <Text style={styles.notificationTime}>
-                        {notification.time}
+                        {getTimeAgo(notification.createdAt)}
                       </Text>
                     </View>
                     <Text style={styles.notificationMessage}>

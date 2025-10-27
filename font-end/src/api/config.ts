@@ -6,9 +6,9 @@ const getBaseUrl = () => {
   if (__DEV__) {
     // Development URLs
     if (Platform.OS === 'android') {
-      return 'http://192.168.133.223:8080/api'; // Android emulator with real IP
+      return 'http://192.168.1.27:8080/api'; // Android emulator with real IP
     } else if (Platform.OS === 'ios') {
-      return 'http://192.168.133.223:8080/api'; // iOS simulator with real IP
+      return 'http://192.168.1.27:8080/api'; // iOS simulator with real IP
     } else {
       return 'http://localhost:8080/api'; // Web
     }
@@ -47,6 +47,9 @@ export const API_CONFIG = {
     FAVORITES: '/favorites',
     FAVORITES_USER: '/favorites/user',
     FAVORITES_CHECK: '/favorites/check',
+    
+    // Notifications
+    NOTIFICATIONS: '/notifications',
   },
   TIMEOUT: 10000, // 10 seconds
 };
@@ -91,6 +94,12 @@ export class HttpClient {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      // Handle empty responses (204 No Content, etc.)
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json') || response.status === 204) {
+        return {} as T; // Return empty object for void responses
       }
 
       const data = await response.json();

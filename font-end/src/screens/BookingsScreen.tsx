@@ -29,7 +29,7 @@ const BookingsScreen = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'history'>('upcoming');
 
   useEffect(() => {
     if (isGuest) {
@@ -68,19 +68,29 @@ const BookingsScreen = () => {
       }
       
       if (activeTab === 'upcoming') {
+        // Sắp tới: chỉ tour active (confirmed/pending) và chưa qua ngày khởi hành
         const upcoming = userBookings.filter(booking => {
-          // Convert departureDate from "dd/mm/yyyy" to Date
           const depDate = new Date(booking.departureDate.split('/').reverse().join('-'));
-          return depDate > now;
+          return depDate > now && (booking.status === 'confirmed' || booking.status === 'pending');
         });
         setBookings(upcoming);
       } else {
-        const past = userBookings.filter(booking => {
-          // Convert departureDate from "dd/mm/yyyy" to Date
+        // Lịch sử: bao gồm completed, cancelled (trong vòng 7 ngày), và các tour đã qua ngày
+        const history = userBookings.filter(booking => {
           const depDate = new Date(booking.departureDate.split('/').reverse().join('-'));
-          return depDate <= now;
+          
+          // Nếu tour bị hủy, chỉ hiển thị trong vòng 7 ngày kể từ ngày tạo booking
+          if (booking.status === 'cancelled') {
+            const createdDate = new Date(booking.createdAt);
+            const daysSinceCreated = Math.floor((now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
+            // Chỉ hiển thị tour đã hủy trong vòng 7 ngày
+            return daysSinceCreated <= 7;
+          }
+          
+          // Các tour khác (completed hoặc đã qua ngày)
+          return depDate <= now || booking.status === 'completed';
         });
-        setBookings(past);
+        setBookings(history);
       }
     } catch (error) {
       console.error('Error loading bookings:', error);
@@ -101,23 +111,26 @@ const BookingsScreen = () => {
     // Convert departureDate from "dd/mm/yyyy" to Date
     const departure = new Date(departureDate.split('/').reverse().join('-'));
     
-    // Nếu tour đã qua thời gian khởi hành
-    if (departure <= now) {
-      if (status === 'cancelled') {
-        return COLORS.error;
-      } else {
-        return COLORS.info; // Màu xanh cho "Đã hoàn thành"
-      }
+    // Kiểm tra status trước
+    if (status === 'cancelled') {
+      return COLORS.error;
     }
     
-    // Nếu tour chưa tới thời gian khởi hành
+    if (status === 'completed') {
+      return COLORS.info;
+    }
+    
+    // Nếu tour đã qua thời gian khởi hành
+    if (departure <= now) {
+      return COLORS.info; // Màu xanh cho "Đã hoàn thành"
+    }
+    
+    // Nếu tour chưa tới thời gian khởi hành (sắp tới)
     switch (status) {
       case 'confirmed':
         return COLORS.success;
       case 'pending':
         return COLORS.warning;
-      case 'cancelled':
-        return COLORS.error;
       default:
         return COLORS.gray;
     }
@@ -128,23 +141,26 @@ const BookingsScreen = () => {
     // Convert departureDate from "dd/mm/yyyy" to Date
     const departure = new Date(departureDate.split('/').reverse().join('-'));
     
-    // Nếu tour đã qua thời gian khởi hành
-    if (departure <= now) {
-      if (status === 'cancelled') {
-        return 'Đã hủy';
-      } else {
-        return 'Đã hoàn thành';
-      }
+    // Kiểm tra status trước
+    if (status === 'cancelled') {
+      return 'Đã hủy';
     }
     
-    // Nếu tour chưa tới thời gian khởi hành
+    if (status === 'completed') {
+      return 'Đã hoàn thành';
+    }
+    
+    // Nếu tour đã qua thời gian khởi hành
+    if (departure <= now) {
+      return 'Đã hoàn thành';
+    }
+    
+    // Nếu tour chưa tới thời gian khởi hành (sắp tới)
     switch (status) {
       case 'confirmed':
         return 'Đã xác nhận';
       case 'pending':
         return 'Chờ xử lý';
-      case 'cancelled':
-        return 'Đã hủy';
       default:
         return status;
     }
@@ -178,13 +194,13 @@ const BookingsScreen = () => {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'past' && styles.activeTab]}
-          onPress={() => setActiveTab('past')}
+          style={[styles.tab, activeTab === 'history' && styles.activeTab]}
+          onPress={() => setActiveTab('history')}
         >
           <Text
-            style={[styles.tabText, activeTab === 'past' && styles.activeTabText]}
+            style={[styles.tabText, activeTab === 'history' && styles.activeTabText]}
           >
-            Đã qua
+            Lịch sử
           </Text>
         </TouchableOpacity>
       </View>

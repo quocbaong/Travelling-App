@@ -23,39 +23,25 @@ import { useAuth } from '../contexts/AuthContext';
 
 const HomeScreen = () => {
   const navigation = useNavigation<any>();
-  const { user, isGuest, userFavorites, addFavorite, removeFavorite } = useAuth();
+  const { 
+    user, 
+    isGuest, 
+    userFavorites, 
+    addFavorite, 
+    removeFavorite,
+    userNotifications,
+    unreadNotificationCount,
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
+    deleteNotification,
+    loadNotifications,
+  } = useAuth();
   const [featuredDestinations, setFeaturedDestinations] = useState<Destination[]>([]);
   const [popularDestinations, setPopularDestinations] = useState<Destination[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<DestinationCategory | null>(null);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
-  const [notifications, setNotifications] = useState([
-    {
-      id: '1',
-      title: 'Tour sắp khởi hành',
-      message: 'Tour "Hạ Long Bay" của bạn sẽ khởi hành vào ngày mai. Vui lòng chuẩn bị sẵn sàng!',
-      time: '2 giờ trước',
-      type: 'warning' as const,
-      isRead: false,
-    },
-    {
-      id: '2',
-      title: 'Đặt chỗ thành công',
-      message: 'Đơn đặt chỗ #12345 đã được xác nhận. Chúc bạn có chuyến đi vui vẻ!',
-      time: '1 ngày trước',
-      type: 'success' as const,
-      isRead: false,
-    },
-    {
-      id: '3',
-      title: 'Khuyến mãi đặc biệt',
-      message: 'Giảm giá 30% cho tất cả tour mùa hè. Đặt ngay để không bỏ lỡ cơ hội!',
-      time: '3 ngày trước',
-      type: 'promotion' as const,
-      isRead: true,
-    },
-  ]);
 
   const categories: DestinationCategory[] = [
     'Beach',
@@ -180,24 +166,24 @@ const HomeScreen = () => {
     }
   };
 
-  const handleNotificationPress = () => {
+  const handleNotificationPress = async () => {
     setShowNotificationModal(true);
+    // Reload notifications when modal opens
+    if (!isGuest) {
+      await loadNotifications();
+    }
   };
 
-  const handleNotificationRead = (notificationId: string) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === notificationId 
-          ? { ...notification, isRead: true }
-          : notification
-      )
-    );
+  const handleNotificationRead = async (notificationId: string) => {
+    await markNotificationAsRead(notificationId);
   };
 
-  const handleMarkAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notification => ({ ...notification, isRead: true }))
-    );
+  const handleMarkAllAsRead = async () => {
+    await markAllNotificationsAsRead();
+  };
+
+  const handleDeleteNotification = async (notificationId: string) => {
+    await deleteNotification(notificationId);
   };
 
 
@@ -239,7 +225,13 @@ const HomeScreen = () => {
             onPress={handleNotificationPress}
           >
             <Ionicons name="notifications-outline" size={24} color={COLORS.text} />
-            <View style={styles.badge} />
+            {unreadNotificationCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>
+                  {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -259,7 +251,7 @@ const HomeScreen = () => {
 
         {/* Categories */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Danh mục</Text>
+          <Text style={[styles.sectionTitle, {marginLeft: SIZES.md, marginBottom: SIZES.sm}]}>Danh mục</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -386,9 +378,10 @@ const HomeScreen = () => {
       <NotificationModal
         visible={showNotificationModal}
         onClose={() => setShowNotificationModal(false)}
-        notifications={notifications}
+        notifications={userNotifications}
         onMarkAllAsRead={handleMarkAllAsRead}
         onNotificationRead={handleNotificationRead}
+        onDeleteNotification={handleDeleteNotification}
       />
     </SafeAreaView>
   );
@@ -452,12 +445,20 @@ const styles = StyleSheet.create({
   },
   badge: {
     position: 'absolute',
-    top: 10,
-    right: 10,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    top: -4,
+    right: -4,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
     backgroundColor: '#FF0000',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: COLORS.white,
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   searchSection: {
     paddingHorizontal: SIZES.md,

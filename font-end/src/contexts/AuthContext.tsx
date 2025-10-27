@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Booking, Destination, Review } from '../types';
-import { authService, userService, bookingService, reviewService } from '../api';
+import { authService, userService, bookingService, reviewService, notificationService } from '../api';
 import { biometricService } from '../services/biometricService';
+import { Notification } from '../api/notificationService';
 
 interface AuthContextType {
   user: User | null;
@@ -32,6 +33,12 @@ interface AuthContextType {
   biometricLogin: () => Promise<boolean>;
   isBiometricAvailable: boolean;
   biometricType: string;
+  userNotifications: Notification[];
+  unreadNotificationCount: number;
+  loadNotifications: () => Promise<void>;
+  markNotificationAsRead: (notificationId: string) => Promise<void>;
+  markAllNotificationsAsRead: () => Promise<void>;
+  deleteNotification: (notificationId: string) => Promise<void>;
 }
 
 const prefersContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,11 +65,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [pendingScreen, setPendingScreen] = useState<string | null>(null);
   const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
   const [biometricType, setBiometricType] = useState('');
+  const [userNotifications, setUserNotifications] = useState<Notification[]>([]);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
 
   useEffect(() => {
     checkAuthStatus();
     checkBiometricAvailability();
   }, []);
+
+  // Auto-refresh notifications every 5 minutes for logged-in users
+  useEffect(() => {
+    if (!user) return;
+
+    const intervalId = setInterval(() => {
+      console.log('🔄 Auto-refreshing notifications...');
+      loadNotifications();
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(intervalId);
+  }, [user]);
 
   const checkBiometricAvailability = async () => {
     try {
@@ -139,6 +160,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       setUserBookings(bookings);
       setUserReviews(reviews);
+      
+      // Load notifications
+      try {
+        const notifications = await notificationService.getUserNotifications(userId);
+        setUserNotifications(notifications);
+        setUnreadNotificationCount(notifications.filter(n => !n.read).length);
+      } catch (error) {
+        console.error('❌ Failed to load notifications:', error);
+      }
       
       // Note: userFavorites will be loaded when needed since it requires destination data
     } catch (error) {
@@ -230,6 +260,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           booking.totalPrice,
           booking.paymentMethod // Pass payment method
         );
+        
+        // Load notifications after booking to get the new notification
+        await loadNotifications();
       } catch (error) {
         console.error('Failed to sync booking to backend:', error);
       }
@@ -426,6 +459,57 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Notification functions
+  const loadNotifications = async () => {
+    if (user) {
+      try {
+        const notifications = await notificationService.getUserNotifications(user.id);
+        setUserNotifications(notifications);
+        setUnreadNotificationCount(notifications.filter(n => !n.read).length);
+      } catch (error) {
+        console.error('Failed to load notifications:', error);
+      }
+    }
+  };
+
+  const markNotificationAsRead = async (notificationId: string) => {
+    try {
+      await notificationService.markAsRead(notificationId);
+      setUserNotifications(prev =>
+        prev.map(n => (n.id === notificationId ? { ...n, read: true } : n))
+      );
+      setUnreadNotificationCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
+  };
+
+  const markAllNotificationsAsRead = async () => {
+    if (user) {
+      try {
+        await notificationService.markAllAsRead(user.id);
+        setUserNotifications(prev => prev.map(n => ({ ...n, read: true })));
+        setUnreadNotificationCount(0);
+      } catch (error) {
+        console.error('Failed to mark all notifications as read:', error);
+      }
+    }
+  };
+
+  const deleteNotification = async (notificationId: string) => {
+    try {
+      await notificationService.deleteNotification(notificationId);
+      setUserNotifications(prev => prev.filter(n => n.id !== notificationId));
+      // Update unread count if deleted notification was unread
+      const notification = userNotifications.find(n => n.id === notificationId);
+      if (notification && !notification.read) {
+        setUnreadNotificationCount(prev => Math.max(0, prev - 1));
+      }
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+    }
+  };
+
   const isGuest = !user;
 
   const value: AuthContextType = {
@@ -457,6 +541,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     biometricLogin,
     isBiometricAvailable,
     biometricType,
+    userNotifications,
+    unreadNotificationCount,
+    loadNotifications,
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
+    deleteNotification,
   };
 
   return (

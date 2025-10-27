@@ -1,9 +1,7 @@
 package fit.se.travelling_app_be.service;
 
 import fit.se.travelling_app_be.entity.Booking;
-import fit.se.travelling_app_be.entity.Destination;
 import fit.se.travelling_app_be.repository.BookingRepository;
-import fit.se.travelling_app_be.repository.DestinationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +14,7 @@ import java.util.Optional;
 public class BookingService {
     
     private final BookingRepository bookingRepository;
-    private final DestinationRepository destinationRepository;
+    private final NotificationService notificationService;
     
     public Booking createBooking(Booking booking) {
         // Set default values
@@ -31,7 +29,24 @@ public class BookingService {
         }
         booking.setBookingDate(LocalDateTime.now());
         
-        return bookingRepository.save(booking);
+        Booking savedBooking = bookingRepository.save(booking);
+        
+        // Create notification for the user
+        String destinationName = "Unknown Destination";
+        if (booking.getDestination() != null && booking.getDestination().getName() != null) {
+            destinationName = booking.getDestination().getName();
+        }
+        
+        String status = savedBooking.getStatus().equals("CONFIRMED") ? "đã xác nhận" : "đang chờ xử lý";
+        notificationService.createNotification(
+            booking.getUserId(),
+            "Đặt chỗ thành công!",
+            "Chuyến đi đến " + destinationName + " của bạn " + status + ".",
+            "booking",
+            savedBooking.getId()
+        );
+        
+        return savedBooking;
     }
     
     public List<Booking> getBookingsByUserId(String userId) {
