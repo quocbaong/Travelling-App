@@ -3,19 +3,19 @@ import { Dimensions } from 'react-native';
 const { width, height } = Dimensions.get('window');
 
 export const COLORS = {
-  // Primary colors - Forest Green
-  primary: '#2D5016',
-  primaryDark: '#1F350F',
-  primaryLight: '#4A7C1E',
+  // Primary colors - Cyan Blue
+  primary: '#30b7d9',
+  primaryDark: '#2397b6',
+  primaryLight: '#5ac3e0',
   
-  // Secondary colors - Sage Green
-  secondary: '#8FBC8F',
-  secondaryDark: '#7BA87B',
-  secondaryLight: '#A3CCA3',
+  // Secondary colors - Light Cyan
+  secondary: '#80d1e8',
+  secondaryDark: '#61b8cf',
+  secondaryLight: '#a6ddf0',
   
-  // Accent colors - Mint Green
-  accent: '#98FB98',
-  accentDark: '#90EE90',
+  // Accent colors - Bright Cyan
+  accent: '#99e0f2',
+  accentDark: '#7dd4e8',
   
   // Rating colors
   rating: '#FFD700', // Gold/Yellow for stars
