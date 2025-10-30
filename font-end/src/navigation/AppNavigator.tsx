@@ -61,7 +61,7 @@ const MainTabs = () => {
 
           return <Ionicons name={iconName} size={24} color={color} />;
         },
-        tabBarActiveTintColor: '#000000',
+        tabBarActiveTintColor: '#30b7d9',
         tabBarInactiveTintColor: '#8E8E93',
         tabBarStyle: {
           height: 60,
