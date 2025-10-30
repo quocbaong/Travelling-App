@@ -59,44 +59,43 @@ const MainTabs = () => {
             iconName = focused ? 'person' : 'person-outline';
           }
 
-          return <Ionicons name={iconName} size={size} color={color} />;
+          return <Ionicons name={iconName} size={24} color={color} />;
         },
-        tabBarActiveTintColor: COLORS.white,
-        tabBarInactiveTintColor: 'rgba(255, 255, 255, 0.8)',
+        tabBarActiveTintColor: '#000000',
+        tabBarInactiveTintColor: '#8E8E93',
         tabBarStyle: {
-          height: 70,
+          height: 60,
           paddingBottom: 8,
           paddingTop: 8,
-          borderTopWidth: 0,
-          backgroundColor: COLORS.primary,
-          borderRadius: 20,
-          marginHorizontal: 16,
-          marginBottom: 16,
-          position: 'absolute',
+          borderTopWidth: 1,
+          borderTopColor: '#E5E5EA',
+          backgroundColor: '#FFFFFF',
         },
         tabBarLabelStyle: {
-          display: 'none', // Ẩn tên tab
+          fontSize: 10,
+          fontWeight: '400',
+          marginTop: -4,
         },
         tabBarIconStyle: {
-          marginTop: 4,
+          marginTop: 0,
         },
       })}
     >
       <Tab.Screen 
         name="Home" 
         component={HomeScreen}
-        options={{ tabBarLabel: '' }}
+        options={{ tabBarLabel: 'Trang chủ' }}
       />
       <Tab.Screen 
         name="Explore" 
         component={ExploreScreen}
-        options={{ tabBarLabel: '' }}
+        options={{ tabBarLabel: 'Khám phá' }}
       />
       <Tab.Screen 
         name="Bookings" 
         component={BookingsScreen}
         options={{ 
-          tabBarLabel: '',
+          tabBarLabel: 'Đặt chỗ',
           tabBarBadge: isGuest ? '!' : undefined,
         }}
       />
@@ -104,7 +103,7 @@ const MainTabs = () => {
         name="Favorites" 
         component={FavoritesScreen}
         options={{ 
-          tabBarLabel: '',
+          tabBarLabel: 'Yêu thích',
           tabBarBadge: isGuest ? '!' : undefined,
         }}
       />
@@ -112,7 +111,7 @@ const MainTabs = () => {
         name="Profile" 
         component={ProfileScreen}
         options={{ 
-          tabBarLabel: '',
+          tabBarLabel: 'Hồ sơ',
           tabBarBadge: isGuest ? '!' : undefined,
         }}
       />
