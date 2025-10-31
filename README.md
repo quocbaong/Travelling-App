@@ -263,7 +263,7 @@ Hoặc nếu sử dụng IntelliJ IDEA, chỉ cần Run application.
 
 This project is for educational purposes.
 
----
+---------------------------
 
 **Version**: 1.0.0  
 **Last Updated**: October 2025
