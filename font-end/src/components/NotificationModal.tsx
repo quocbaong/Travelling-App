@@ -286,8 +286,10 @@ const styles = StyleSheet.create({
   notificationItem: {
     flexDirection: 'row',
     paddingVertical: SIZES.md,
+    paddingHorizontal: SIZES.sm,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.lightGray,
+    backgroundColor: COLORS.white,
     position: 'relative',
   },
   unreadItem: {

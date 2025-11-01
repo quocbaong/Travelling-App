@@ -36,7 +36,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         <Ionicons
           name="search"
           size={20}
-          color={COLORS.gray}
+          color={COLORS.black}
           style={styles.searchIcon}
         />
         <TextInput
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     flex: 1,
     ...FONTS.regular,
     fontSize: SIZES.body1,
-    color: COLORS.text,
+    color: COLORS.black,
     paddingVertical: 0,
   },
   clearButton: {

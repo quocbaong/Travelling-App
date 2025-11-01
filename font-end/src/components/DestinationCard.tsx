@@ -46,6 +46,7 @@ export const DestinationCard: React.FC<DestinationCardProps> = ({
           <Image
             source={{ 
               uri: destination.images?.[0] || 
+              destination.imageUrl || 
               'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
             }}
             style={styles.image}
