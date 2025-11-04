@@ -96,13 +96,13 @@ const LoginScreen = () => {
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Email</Text>
               <View style={styles.inputWrapper}>
-                <Ionicons name="mail-outline" size={20} color={COLORS.gray} />
+                <Ionicons name="mail-outline" size={20} color={COLORS.black} />
                 <TextInput
                   style={styles.input}
                   value={email}
                   onChangeText={setEmail}
                   placeholder="Nhập email của bạn"
-                  placeholderTextColor={COLORS.gray}
+                  placeholderTextColor={COLORS.black}
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
@@ -113,13 +113,13 @@ const LoginScreen = () => {
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Mật khẩu</Text>
               <View style={styles.inputWrapper}>
-                <Ionicons name="lock-closed-outline" size={20} color={COLORS.gray} />
+                <Ionicons name="lock-closed-outline" size={20} color={COLORS.black} />
                 <TextInput
                   style={styles.input}
                   value={password}
                   onChangeText={setPassword}
                   placeholder="Nhập mật khẩu"
-                  placeholderTextColor={COLORS.gray}
+                  placeholderTextColor={COLORS.black}
                   secureTextEntry={!showPassword}
                 />
                 <TouchableOpacity
@@ -129,7 +129,7 @@ const LoginScreen = () => {
                   <Ionicons
                     name={showPassword ? 'eye-outline' : 'eye-off-outline'}
                     size={20}
-                    color={COLORS.gray}
+                    color={COLORS.black}
                   />
                 </TouchableOpacity>
               </View>
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
   subtitle: {
     ...FONTS.regular,
     fontSize: SIZES.body1,
-    color: COLORS.textSecondary,
+    color: COLORS.black,
     textAlign: 'center',
     marginBottom: SIZES.xxl,
   },
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     ...FONTS.semiBold,
     fontSize: SIZES.body1,
-    color: COLORS.text,
+    color: COLORS.black,
     marginBottom: SIZES.sm,
   },
   inputWrapper: {
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
   dividerText: {
     ...FONTS.regular,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.black,
     marginHorizontal: SIZES.md,
   },
   socialContainer: {
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
   registerText: {
     ...FONTS.regular,
     fontSize: SIZES.body1,
-    color: COLORS.textSecondary,
+    color: COLORS.black,
   },
   registerLink: {
     ...FONTS.semiBold,
