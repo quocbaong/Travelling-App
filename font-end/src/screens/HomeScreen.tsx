@@ -14,7 +14,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { COLORS, SIZES, FONTS } from '../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { PLACEHOLDER_IMAGES, CATEGORY_ICONS } from '../constants/images';
 import { RootStackParamList, Destination, DestinationCategory } from '../types';
 import { destinationService, userService } from '../api';
@@ -191,63 +191,67 @@ const HomeScreen = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <TouchableOpacity 
-              style={styles.avatarContainer}
-              onPress={() => navigation.navigate('MainTabs', { screen: 'Profile' })}
-              activeOpacity={0.7}
-            >
-              {user?.avatar ? (
-                <Image 
-                  source={{ uri: user.avatar }} 
-                  style={styles.avatarImage}
-                />
-              ) : (
-                <Ionicons name="person" size={24} color={COLORS.white} />
-              )}
-            </TouchableOpacity>
-            <View style={styles.greetingContainer}>
-              <Text style={styles.greeting}>
-                {isGuest ? 'Hello, Guest!' : `Hello, ${user?.name || 'User'}!`}
-              </Text>
-            </View>
-          </View>
-          <TouchableOpacity
-            style={styles.notificationButton}
-            onPress={handleNotificationPress}
+      {/* Header - Cố định */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity 
+            style={styles.avatarContainer}
+            onPress={() => navigation.navigate('MainTabs', { screen: 'Profile' })}
+            activeOpacity={0.7}
           >
-            <Ionicons name="notifications-outline" size={24} color={COLORS.text} />
-            {unreadNotificationCount > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>
-                  {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
-                </Text>
-              </View>
+            {user?.avatar ? (
+              <Image 
+                source={{ uri: user.avatar }} 
+                style={styles.avatarImage}
+              />
+            ) : (
+              <Ionicons name="person" size={24} color={COLORS.white} />
             )}
           </TouchableOpacity>
-        </View>
-
-        {/* Search Bar */}
-        <View style={styles.searchSection}>
-          <TouchableOpacity
-            style={styles.searchBar}
-            onPress={() => navigation.navigate('Search')}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="search" size={20} color={COLORS.gray} />
-            <Text style={styles.searchPlaceholder}>
-              Tìm kiếm điểm đến...
+          <View style={styles.greetingContainer}>
+            <Text style={styles.greeting}>
+              {isGuest ? 'Hello, Guest!' : `Hello, ${user?.name || 'User'}!`}
             </Text>
-          </TouchableOpacity>
+          </View>
         </View>
+        <TouchableOpacity
+          style={styles.notificationButton}
+          onPress={handleNotificationPress}
+        >
+          <Ionicons name="notifications-outline" size={24} color={COLORS.text} />
+          {unreadNotificationCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      {/* Search Bar - Cố định */}
+      <View style={styles.searchSection}>
+        <TouchableOpacity
+          style={styles.searchBar}
+          onPress={() => navigation.navigate('Search')}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="search" size={20} color={COLORS.black} />
+          <Text style={styles.searchPlaceholder}>
+            Tìm kiếm điểm đến...
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Content Section - ScrollView */}
+      <View style={styles.contentSection}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          contentContainerStyle={styles.scrollContent}
+        >
 
         {/* Categories */}
         <View style={styles.section}>
@@ -370,9 +374,10 @@ const HomeScreen = () => {
           </View>
         </View>
 
-        {/* Bottom Spacing */}
-        <View style={{ height: 20 }} />
-      </ScrollView>
+          {/* Bottom Spacing */}
+          <View style={{ height: 20 }} />
+        </ScrollView>
+      </View>
 
       {/* Notification Modal */}
       <NotificationModal
@@ -462,7 +467,7 @@ const styles = StyleSheet.create({
   },
   searchSection: {
     paddingHorizontal: SIZES.md,
-    marginBottom: SIZES.md,
+    marginVertical: SIZES.md,
   },
   searchBar: {
     flexDirection: 'row',
@@ -470,15 +475,23 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderRadius: SIZES.radiusMd,
     paddingHorizontal: SIZES.md,
-    height: 50,
+    height: 48,
     gap: SIZES.sm,
     borderWidth: 1,
     borderColor: COLORS.lightGray,
+    ...SHADOWS.light,
   },
   searchPlaceholder: {
     ...FONTS.regular,
     fontSize: SIZES.body1,
     color: COLORS.text,
+  },
+  contentSection: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   section: {
     marginBottom: SIZES.lg,
