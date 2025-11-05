@@ -6,9 +6,9 @@ const getBaseUrl = () => {
   if (__DEV__) {
     // Development URLs
     if (Platform.OS === 'android') {
-      return 'http://192.168.2.219:8080/api'; // Android emulator with real IP
+      return 'http://192.168.211.223:8080/api'; // Android emulator with real IP
     } else if (Platform.OS === 'ios') {
-      return 'http://192.168.2.219:8080/api'; // iOS simulator with real IP
+      return 'http://192.168.211.223:8080/api'; // iOS simulator with real IP
     } else {
       return 'http://localhost:8080/api'; // Web
     }
