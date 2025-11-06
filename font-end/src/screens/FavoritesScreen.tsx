@@ -65,7 +65,7 @@ const FavoritesScreen = () => {
       >
         {userFavorites.length === 0 ? (
           <View style={styles.emptyState}>
-            <Ionicons name="heart-outline" size={64} color={COLORS.gray} />
+            <Ionicons name="heart-outline" size={64} color={COLORS.black} />
             <Text style={styles.emptyTitle}>Chưa có yêu thích</Text>
             <Text style={styles.emptyText}>
               Thêm các điểm đến yêu thích của bạn để dễ dàng tìm thấy sau này
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   emptyText: {
     ...FONTS.regular,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.black,
     marginTop: SIZES.sm,
     textAlign: 'center',
     paddingHorizontal: SIZES.xl,
