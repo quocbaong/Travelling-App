@@ -13,7 +13,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { LinearGradient } from 'expo-linear-gradient';
 
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { RootStackParamList, Booking } from '../types';
@@ -25,7 +24,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const BookingsScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const { user, isGuest, userBookings, setPendingScreenAccess } = useAuth();
+  const { user, isGuest, userBookings, setPendingScreenAccess, removeBooking, userReviews } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -166,6 +165,119 @@ const BookingsScreen = () => {
     }
   };
 
+  const formatBookingDate = (departureDate: string, returnDate: string, createdAt?: string, isHistory: boolean = false) => {
+    try {
+      if (isHistory && createdAt) {
+        // For history tab, show booking date (createdAt)
+        const date = new Date(createdAt);
+        const months = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 
+                       'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+        const day = date.getDate();
+        const month = months[date.getMonth()];
+        const year = date.getFullYear();
+        const hours = date.getHours();
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12;
+        return `${day} ${month}, ${year}, ${displayHours}:${minutes} ${ampm}`;
+      } else {
+        // For upcoming tab, show travel dates
+        const formatDate = (dateStr: string) => {
+          const [day, month, year] = dateStr.split('/');
+          return new Date(`${year}-${month}-${day}`);
+        };
+
+        const depDate = formatDate(departureDate);
+        const retDate = formatDate(returnDate);
+        
+        const months = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 
+                       'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+        
+        const depDay = depDate.getDate();
+        const depMonth = months[depDate.getMonth()];
+        const depYear = depDate.getFullYear();
+        
+        const retDay = retDate.getDate();
+        const retMonth = months[retDate.getMonth()];
+        const retYear = retDate.getFullYear();
+        
+        if (depMonth === retMonth && depYear === retYear) {
+          return `${depDay} - ${retDay} ${depMonth}, ${depYear}`;
+        } else {
+          return `${depDay} ${depMonth}, ${depYear} - ${retDay} ${retMonth}, ${retYear}`;
+        }
+      }
+    } catch (error) {
+      return isHistory ? createdAt || '' : `${departureDate} - ${returnDate}`;
+    }
+  };
+
+  const renderStars = (rating: number) => {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+
+    for (let i = 0; i < 5; i++) {
+      if (i < fullStars) {
+        stars.push(
+          <Ionicons key={i} name="star" size={14} color="#FFD700" />
+        );
+      } else if (i === fullStars && hasHalfStar) {
+        stars.push(
+          <Ionicons key={i} name="star-half" size={14} color="#FFD700" />
+        );
+      } else {
+        stars.push(
+          <Ionicons key={i} name="star-outline" size={14} color="#FFD700" />
+        );
+      }
+    }
+    return stars;
+  };
+
+  const handleCancelBooking = (booking: Booking) => {
+    Alert.alert(
+      'Hủy đặt chỗ',
+      'Bạn có chắc chắn muốn hủy đặt chỗ này? Hành động này không thể hoàn tác.',
+      [
+        { text: 'Không', style: 'cancel' },
+        {
+          text: 'Hủy đặt chỗ',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const success = await bookingService.cancelBooking(booking.id);
+              if (success) {
+                // Remove booking from context
+                removeBooking(booking.id);
+                Alert.alert('Thành công', 'Đặt chỗ đã được hủy thành công.');
+              } else {
+                Alert.alert('Lỗi', 'Không thể hủy đặt chỗ. Vui lòng thử lại sau.');
+              }
+            } catch (error) {
+              console.error('Error cancelling booking:', error);
+              Alert.alert('Lỗi', 'Không thể hủy đặt chỗ. Vui lòng thử lại sau.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const hasReviewed = (destinationId: string) => {
+    return userReviews.some(
+      review => review.destinationId === destinationId && review.userId === user?.id
+    );
+  };
+
+  const handleWriteReview = (booking: Booking) => {
+    navigation.navigate('TourReview', { booking } as any);
+  };
+
+  const handleBookAgain = (booking: Booking) => {
+    navigation.navigate('DestinationDetail', { destination: booking.destination });
+  };
+
   if (loading) {
     return <Loading fullScreen />;
   }
@@ -230,78 +342,114 @@ const BookingsScreen = () => {
         ) : (
           <View style={styles.bookingsContainer}>
             {bookings.map((booking, index) => (
-              <View
-                key={booking.id}
-              >
-                <TouchableOpacity
-                  style={styles.bookingCard}
-                  onPress={() =>
-                    navigation.navigate('BookingDetail', { booking })
-                  }
-                  activeOpacity={0.9}
-                >
+              <View key={booking.id} style={styles.bookingCard}>
+                {/* Booking ID and Date */}
+                <View style={styles.bookingHeader}>
+                  <Text style={styles.bookingId}>Mã đặt chỗ: {booking.id.slice(-8)}</Text>
+                  <Text style={styles.bookingDate}>
+                    {activeTab === 'history' ? 'Ngày đặt: ' : 'Ngày đi: '}
+                    {formatBookingDate(booking.departureDate, booking.returnDate, booking.createdAt, activeTab === 'history')}
+                  </Text>
+                </View>
+
+                {/* Property/Tour Details */}
+                <View style={styles.bookingContent}>
+                  {/* Image */}
                   <Image
-                    source={{ 
-                      uri: booking.destination?.imageUrl || 
-                      booking.destination?.images?.[0] || 
-                      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+                    source={{
+                      uri:
+                        booking.destination?.imageUrl ||
+                        booking.destination?.images?.[0] ||
+                        'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
                     }}
                     style={styles.bookingImage}
                   />
-                  <LinearGradient
-                    colors={['transparent', 'rgba(0,0,0,0.7)']}
-                    style={styles.bookingGradient}
-                  />
-                  
-                  <View
-                    style={[
-                      styles.statusBadge,
-                      { backgroundColor: getStatusColor(booking.status, booking.departureDate) },
-                    ]}
-                  >
-                    <Text style={styles.statusText}>
-                      {getStatusText(booking.status, booking.departureDate)}
-                    </Text>
-                  </View>
 
-                  <View style={styles.bookingInfo}>
-                    <Text style={styles.bookingName} numberOfLines={1}>
-                      {booking.destination.name}
+                  {/* Details */}
+                  <View style={styles.bookingDetails}>
+                    {/* Name */}
+                    <Text style={styles.destinationName} numberOfLines={1}>
+                      {booking.destination?.name || 'Không có tên'}
                     </Text>
-                    <View style={styles.bookingDetails}>
-                      <View style={styles.detailRow}>
-                        <Ionicons
-                          name="calendar-outline"
-                          size={14}
-                          color={COLORS.white}
-                        />
-                        <Text style={styles.detailText}>
-                          {booking.departureDate} - {booking.returnDate}
-                        </Text>
-                      </View>
-                      <View style={styles.detailRow}>
-                        <Ionicons
-                          name="people-outline"
-                          size={14}
-                          color={COLORS.white}
-                        />
-                        <Text style={styles.detailText}>
-                          {booking.guests} khách
-                        </Text>
-                      </View>
-                    </View>
-                    <View style={styles.bookingBottom}>
-                      <Text style={styles.bookingPrice}>
-                        ${booking.totalPrice}
+
+                    {/* Location */}
+                    <View style={styles.locationContainer}>
+                      <Ionicons name="location" size={14} color={COLORS.black} />
+                      <Text style={styles.locationText} numberOfLines={1}>
+                        {booking.destination?.country || 'Không xác định'}
                       </Text>
-                      <Ionicons
-                        name="chevron-forward"
-                        size={20}
-                        color={COLORS.white}
-                      />
                     </View>
+
+                    {/* Rating */}
+                    <View style={styles.ratingContainer}>
+                      <View style={styles.starsContainer}>
+                        {renderStars(booking.destination?.rating || 0)}
+                      </View>
+                      <Text style={styles.ratingText}>
+                        {booking.destination?.rating?.toFixed(1) || '0.0'}
+                      </Text>
+                    </View>
+                    <Text style={styles.reviewsText}>
+                      ({booking.destination?.reviews || 0} đánh giá)
+                    </Text>
                   </View>
-                </TouchableOpacity>
+                </View>
+
+                {/* Action Buttons */}
+                <View style={styles.actionButtons}>
+                  {activeTab === 'upcoming' ? (
+                    <>
+                      <TouchableOpacity
+                        style={styles.cancelButton}
+                        onPress={() => handleCancelBooking(booking)}
+                        disabled={booking.status === 'cancelled' || booking.status === 'completed'}
+                      >
+                        <Text
+                          style={[
+                            styles.cancelButtonText,
+                            (booking.status === 'cancelled' || booking.status === 'completed') &&
+                              styles.disabledButtonText,
+                          ]}
+                        >
+                          Hủy
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.viewDetailsButton}
+                        onPress={() => navigation.navigate('BookingDetail', { booking })}
+                      >
+                        <Text style={styles.viewDetailsButtonText}>Xem chi tiết</Text>
+                      </TouchableOpacity>
+                    </>
+                  ) : (
+                    <>
+                      <TouchableOpacity
+                        style={styles.reviewButton}
+                        onPress={() => handleWriteReview(booking)}
+                        disabled={
+                          hasReviewed(booking.destination?.id || '') || 
+                          booking.status === 'cancelled'
+                        }
+                      >
+                        <Text
+                          style={[
+                            styles.reviewButtonText,
+                            (hasReviewed(booking.destination?.id || '') || booking.status === 'cancelled') &&
+                              styles.disabledButtonText,
+                          ]}
+                        >
+                          Viết đánh giá
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.bookAgainButton}
+                        onPress={() => handleBookAgain(booking)}
+                      >
+                        <Text style={styles.bookAgainButtonText}>Đặt lại</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+                </View>
               </View>
             ))}
           </View>
@@ -316,16 +464,18 @@ const BookingsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.veryLightGray,
   },
   header: {
     paddingHorizontal: SIZES.md,
     paddingVertical: SIZES.md,
+    alignItems: 'center',
   },
   title: {
     ...FONTS.bold,
     fontSize: SIZES.h3,
     color: COLORS.text,
+    textAlign: 'center',
   },
   subtitle: {
     ...FONTS.regular,
@@ -335,30 +485,35 @@ const styles = StyleSheet.create({
   },
   tabsContainer: {
     flexDirection: 'row',
-    backgroundColor: COLORS.veryLightGray,
+    backgroundColor: '#F5F5F5',
     marginHorizontal: SIZES.md,
     marginBottom: SIZES.md,
     borderRadius: SIZES.radiusMd,
     padding: 4,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
   tab: {
     flex: 1,
-    paddingVertical: SIZES.sm,
+    paddingVertical: SIZES.sm + 2,
     alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: SIZES.radius,
+    backgroundColor: 'transparent',
   },
   activeTab: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.primary,
     ...SHADOWS.light,
   },
   tabText: {
-    ...FONTS.medium,
+    ...FONTS.semiBold,
     fontSize: SIZES.body1,
-    color: COLORS.textSecondary,
+    color: COLORS.black,
   },
   activeTabText: {
-    ...FONTS.semiBold,
-    color: COLORS.text,
+    ...FONTS.bold,
+    fontSize: SIZES.body1,
+    color: COLORS.white,
   },
   scrollContent: {
     flexGrow: 1,
@@ -368,71 +523,144 @@ const styles = StyleSheet.create({
     gap: SIZES.md,
   },
   bookingCard: {
-    height: 200,
-    borderRadius: SIZES.radiusMd,
-    overflow: 'hidden',
     backgroundColor: COLORS.white,
-    ...SHADOWS.medium,
-  },
-  bookingImage: {
-    width: '100%',
-    height: '100%',
-  },
-  bookingGradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: '70%',
-  },
-  statusBadge: {
-    position: 'absolute',
-    top: SIZES.sm,
-    right: SIZES.sm,
-    paddingHorizontal: SIZES.sm,
-    paddingVertical: 4,
-    borderRadius: SIZES.radiusSm,
-  },
-  statusText: {
-    ...FONTS.semiBold,
-    fontSize: SIZES.body3,
-    color: COLORS.white,
-  },
-  bookingInfo: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    borderRadius: SIZES.radiusMd,
     padding: SIZES.md,
+    ...SHADOWS.medium,
+    marginBottom: SIZES.md,
   },
-  bookingName: {
+  bookingHeader: {
+    marginBottom: SIZES.md,
+  },
+  bookingId: {
     ...FONTS.bold,
     fontSize: SIZES.h5,
-    color: COLORS.white,
-    marginBottom: SIZES.sm,
+    color: COLORS.text,
+    marginBottom: 4,
+  },
+  bookingDate: {
+    ...FONTS.regular,
+    fontSize: SIZES.body1,
+    color: COLORS.textSecondary,
+  },
+  bookingContent: {
+    flexDirection: 'row',
+    marginBottom: SIZES.md,
+  },
+  bookingImage: {
+    width: 100,
+    height: 100,
+    borderRadius: SIZES.radius,
+    marginRight: SIZES.md,
   },
   bookingDetails: {
-    gap: 4,
-    marginBottom: SIZES.sm,
+    flex: 1,
+    justifyContent: 'flex-start',
   },
-  detailRow: {
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  starsContainer: {
+    flexDirection: 'row',
+    marginRight: SIZES.xs,
+  },
+  ratingText: {
+    ...FONTS.regular,
+    fontSize: SIZES.body1,
+    color: COLORS.text,
+  },
+  reviewsText: {
+    ...FONTS.regular,
+    fontSize: SIZES.body1,
+    color: COLORS.black,
+    marginBottom: SIZES.xs,
+  },
+  destinationName: {
+    ...FONTS.bold,
+    fontSize: SIZES.h4+3,
+    color: COLORS.text,
+    marginBottom: SIZES.xs,
+  },
+  locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
-  detailText: {
+  locationText: {
     ...FONTS.regular,
-    fontSize: SIZES.body3,
+    fontSize: SIZES.body1+1,
+    color: COLORS.textSecondary,
+    flex: 1,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: SIZES.sm,
+    marginTop: SIZES.sm,
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: SIZES.sm,
+    paddingHorizontal: SIZES.md,
+    borderRadius: SIZES.radius,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    backgroundColor: COLORS.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelButtonText: {
+    ...FONTS.semiBold,
+    fontSize: SIZES.body1,
+    color: COLORS.text,
+  },
+  disabledButtonText: {
+    color: COLORS.textSecondary,
+    opacity: 0.5,
+  },
+  viewDetailsButton: {
+    flex: 1,
+    paddingVertical: SIZES.sm,
+    paddingHorizontal: SIZES.md,
+    borderRadius: SIZES.radius,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  viewDetailsButtonText: {
+    ...FONTS.semiBold,
+    fontSize: SIZES.body1,
     color: COLORS.white,
   },
-  bookingBottom: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  reviewButton: {
+    flex: 1,
+    paddingVertical: SIZES.sm,
+    paddingHorizontal: SIZES.md,
+    borderRadius: SIZES.radius,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    backgroundColor: COLORS.white,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  bookingPrice: {
-    ...FONTS.bold,
-    fontSize: SIZES.h4,
+  reviewButtonText: {
+    ...FONTS.semiBold,
+    fontSize: SIZES.body1,
+    color: COLORS.text,
+  },
+  bookAgainButton: {
+    flex: 1,
+    paddingVertical: SIZES.sm,
+    paddingHorizontal: SIZES.md,
+    borderRadius: SIZES.radius,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bookAgainButtonText: {
+    ...FONTS.semiBold,
+    fontSize: SIZES.body1,
     color: COLORS.white,
   },
   emptyState: {

@@ -88,6 +88,7 @@ export interface RootStackParamList {
   Loading: undefined;
   Login: undefined;
   Register: undefined;
+  RegisterSuccess: undefined;
   MainTabs: undefined;
   DestinationDetail: { destination: Destination };
   BookingDetail: { booking: Booking };
