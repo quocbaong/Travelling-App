@@ -87,7 +87,7 @@ const PaymentMethodsScreen = () => {
           </TouchableOpacity>
           <Text style={styles.title}>Phương thức thanh toán</Text>
           <TouchableOpacity style={styles.addButton}>
-            <Ionicons name="add" size={20} color={COLORS.primary} />
+            <Ionicons name="add" size={20} color={COLORS.black} />
           </TouchableOpacity>
         </View>
 
@@ -101,7 +101,7 @@ const PaymentMethodsScreen = () => {
                 <View style={styles.paymentItem}>
                   <View style={styles.paymentItemLeft}>
                     <View style={styles.paymentIcon}>
-                      <Ionicons name={item.icon as any} size={20} color={COLORS.primary} />
+                      <Ionicons name={item.icon as any} size={20} color={COLORS.black} />
                     </View>
                     <View style={styles.paymentInfo}>
                       <Text style={styles.paymentTitle}>{item.title}</Text>
@@ -129,7 +129,7 @@ const PaymentMethodsScreen = () => {
             <View style={styles.securityItem}>
               <View style={styles.securityItemLeft}>
                 <View style={styles.securityIcon}>
-                  <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.securityInfo}>
                   <Text style={styles.securityTitle}>Bảo mật cao</Text>
@@ -145,7 +145,7 @@ const PaymentMethodsScreen = () => {
             <View style={styles.securityItem}>
               <View style={styles.securityItemLeft}>
                 <View style={styles.securityIcon}>
-                  <Ionicons name="lock-closed-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="lock-closed-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.securityInfo}>
                   <Text style={styles.securityTitle}>Mã hóa SSL 256-bit</Text>
@@ -161,7 +161,7 @@ const PaymentMethodsScreen = () => {
             <View style={styles.securityItem}>
               <View style={styles.securityItemLeft}>
                 <View style={styles.securityIcon}>
-                  <Ionicons name="checkmark-circle-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="checkmark-circle-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.securityInfo}>
                   <Text style={styles.securityTitle}>PCI DSS Compliant</Text>
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   paymentSubtitle: {
     ...FONTS.regular,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
   },
   divider: {
     height: 1,
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   securityDescription: {
     ...FONTS.regular,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
   },
 });
 
