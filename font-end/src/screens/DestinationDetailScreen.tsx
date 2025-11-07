@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,27 +7,39 @@ import {
   Image,
   Dimensions,
   TouchableOpacity,
+  FlatList,
   Animated,
+  Linking,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { LinearGradient } from 'expo-linear-gradient';
 
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
+
+// Map rendering: Use WebView for all platforms (web, Android, iOS)
+// react-native-maps requires native modules and causes TurboModule errors in Expo Go
+// WebView solution works universally without native dependencies
 import { RootStackParamList, Destination, Review } from '../types';
 import { userService, destinationService, reviewService } from '../api';
-import { Button } from '../components';
 import { useAuth } from '../contexts/AuthContext';
+import { GOOGLE_MAPS_API_KEY } from '../api/config';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type RouteProps = RouteProp<RootStackParamList, 'DestinationDetail'>;
 
 const { width, height } = Dimensions.get('window');
-const HEADER_MAX_HEIGHT = height * 0.5;
-const HEADER_MIN_HEIGHT = 100;
-const HEADER_SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
+const HEADER_HEIGHT = height * 0.5;
+
+// Helper function to get latitude/longitude from destination (handles both formats)
+const getDestinationCoordinates = (dest: Destination | any) => {
+  return {
+    latitude: dest.latitude ?? dest.location?.latitude,
+    longitude: dest.longitude ?? dest.location?.longitude,
+  };
+};
 
 const DestinationDetailScreen = () => {
   const navigation = useNavigation<NavigationProp>();
@@ -39,17 +51,40 @@ const DestinationDetailScreen = () => {
   const [isFavorite, setIsFavorite] = useState(
     user?.favorites?.includes(destination.id) || false
   );
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [expandedDescription, setExpandedDescription] = useState(false);
+  const [mapLoadError, setMapLoadError] = useState(false);
+  const imageScrollRef = useRef<FlatList>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
+
+  // Fixed visited count (cố định, không đổi)
+  const visitedCount = useMemo(() => {
+    const reviewCount = (destination.reviews || 0) + userReviews.filter(
+      review => review.destinationId === destination.id
+    ).length;
+    return reviewCount * 3 + 1000; // Fixed calculation
+  }, [destination.id, destination.reviews, userReviews.length]);
 
   // Fetch fresh destination data from server
   const refreshDestination = async () => {
     try {
       const freshDestination = await destinationService.getDestinationById(destination.id);
       if (freshDestination) {
-        console.log('🔄 Refreshed destination:', freshDestination.name, 'Rating:', freshDestination.rating);
         setDestination(freshDestination);
+        // Debug: Log coordinates
+        const coords = getDestinationCoordinates(freshDestination);
+        console.log('📍 Destination coordinates:', {
+          name: freshDestination.name,
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          rawData: {
+            directLat: freshDestination.latitude,
+            directLng: freshDestination.longitude,
+            locationLat: (freshDestination as any).location?.latitude,
+            locationLng: (freshDestination as any).location?.longitude,
+          }
+        });
       }
     } catch (error) {
       console.error('Failed to refresh destination:', error);
@@ -60,7 +95,6 @@ const DestinationDetailScreen = () => {
   const loadReviews = async () => {
     try {
       const destinationReviews = await reviewService.getReviewsByDestination(destination.id);
-      console.log('📝 Loaded reviews:', destinationReviews.length);
       setReviews(destinationReviews);
     } catch (error) {
       console.error('Failed to load reviews:', error);
@@ -68,7 +102,7 @@ const DestinationDetailScreen = () => {
     }
   };
 
-  // Refresh when screen comes into focus (e.g., after submitting a review)
+  // Refresh when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       refreshDestination();
@@ -87,7 +121,6 @@ const DestinationDetailScreen = () => {
       review.destinationId === destination.id
     );
     
-    // If no reviews at all, return original rating or 0
     if (destinationReviews.length === 0) {
       return destination.rating || 0;
     }
@@ -95,51 +128,24 @@ const DestinationDetailScreen = () => {
     const totalRating = destinationReviews.reduce((sum, review) => sum + review.rating, 0);
     const averageRating = totalRating / destinationReviews.length;
     
-    // If destination has no original rating or review count, just use new reviews average
     if (!destination.rating || !destination.reviews) {
       return Math.round(averageRating * 10) / 10;
     }
     
-    // Combine with original rating (weighted average)
-    // Original: (rating * review_count) + new reviews, then divide by total count
     const originalTotalRating = destination.rating * destination.reviews;
     const newTotalRating = totalRating;
     const totalReviews = destination.reviews + destinationReviews.length;
     const combinedRating = (originalTotalRating + newTotalRating) / totalReviews;
     
-    return Math.round(combinedRating * 10) / 10; // Round to 1 decimal place
+    return Math.round(combinedRating * 10) / 10;
   };
 
   const getRealTimeReviewsCount = () => {
     const destinationReviews = userReviews.filter(review => 
       review.destinationId === destination.id
     );
-    return destination.reviews + destinationReviews.length;
+    return (destination.reviews || 0) + destinationReviews.length;
   };
-
-  const headerTranslateY = scrollY.interpolate({
-    inputRange: [0, HEADER_SCROLL_DISTANCE],
-    outputRange: [0, -HEADER_SCROLL_DISTANCE],
-    extrapolate: 'clamp',
-  });
-
-  const imageOpacity = scrollY.interpolate({
-    inputRange: [0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],
-    outputRange: [1, 0.5, 0],
-    extrapolate: 'clamp',
-  });
-
-  const imageScale = scrollY.interpolate({
-    inputRange: [-100, 0],
-    outputRange: [1.5, 1],
-    extrapolate: 'clamp',
-  });
-
-  const titleOpacity = scrollY.interpolate({
-    inputRange: [0, HEADER_SCROLL_DISTANCE / 2, HEADER_SCROLL_DISTANCE],
-    outputRange: [0, 0, 1],
-    extrapolate: 'clamp',
-  });
 
   const handleFavoritePress = async () => {
     if (isGuest) {
@@ -168,56 +174,164 @@ const DestinationDetailScreen = () => {
     navigation.navigate('TourServices', { destination });
   };
 
+  const renderStars = (rating: number) => {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+
+    for (let i = 0; i < 5; i++) {
+      if (i < fullStars) {
+        stars.push(
+          <Ionicons key={i} name="star" size={14} color={COLORS.rating} />
+        );
+      } else if (i === fullStars && hasHalfStar) {
+        stars.push(
+          <Ionicons key={i} name="star-half" size={14} color={COLORS.rating} />
+        );
+      } else {
+        stars.push(
+          <Ionicons key={i} name="star-outline" size={14} color={COLORS.rating} />
+        );
+      }
+    }
+    return stars;
+  };
+
+  const images = destination.images && destination.images.length > 0 
+    ? destination.images 
+    : [destination.imageUrl || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800'];
+
+  const renderImageItem = ({ item }: { item: string }) => (
+    <Image
+      source={{ uri: item }}
+      style={styles.heroImage}
+      resizeMode="cover"
+    />
+  );
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'Hôm nay';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Hôm nay';
+    if (diffDays === 1) return '1 ngày trước';
+    if (diffDays < 7) return `${diffDays} ngày trước`;
+    if (diffDays < 30) {
+      const weeks = Math.floor(diffDays / 7);
+      return `${weeks} tuần trước`;
+    }
+    return date.toLocaleDateString('vi-VN', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
+  // Animated header for parallax scroll
+  const headerTranslateY = scrollY.interpolate({
+    inputRange: [0, HEADER_HEIGHT],
+    outputRange: [0, -HEADER_HEIGHT],
+    extrapolate: 'clamp',
+  });
+
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, HEADER_HEIGHT / 2, HEADER_HEIGHT],
+    outputRange: [1, 0.5, 0],
+    extrapolate: 'clamp',
+  });
+
+  // Fixed header background opacity - becomes more visible when scrolling
+  const fixedHeaderBgOpacity = scrollY.interpolate({
+    inputRange: [0, HEADER_HEIGHT * 0.5, HEADER_HEIGHT],
+    outputRange: [0, 0.3, 1],
+    extrapolate: 'clamp',
+  });
+
+  // Fixed header white text opacity - hidden when not scrolling
+  const fixedHeaderWhiteTextOpacity = scrollY.interpolate({
+    inputRange: [0, HEADER_HEIGHT * 0.7, HEADER_HEIGHT],
+    outputRange: [0, 0, 0], // Always hidden
+    extrapolate: 'clamp',
+  });
+
+  // Fixed header black text opacity - fades in when scrolling
+  const fixedHeaderBlackTextOpacity = scrollY.interpolate({
+    inputRange: [0, HEADER_HEIGHT * 0.7, HEADER_HEIGHT],
+    outputRange: [0, 0, 1], // Only visible when scrolled
+    extrapolate: 'clamp',
+  });
+
+  // Get amenities for "Bao gồm" section
+  const includedServices = destination.amenities || [];
+  const defaultServices = [
+    { icon: 'airplane-outline', label: 'Chuyến bay' },
+    { icon: 'bed-outline', label: 'Khách sạn' },
+    { icon: 'car-outline', label: 'Di chuyển' },
+  ];
+
+  const servicesToShow = includedServices.length > 0 
+    ? includedServices.map((amenity, index) => {
+        const iconMap: { [key: string]: string } = {
+          'WiFi': 'wifi-outline',
+          'Breakfast': 'restaurant-outline',
+          'Airport Transfer': 'airplane-outline',
+          'Guide': 'person-outline',
+          'Hotel': 'bed-outline',
+          'Transport': 'car-outline',
+        };
+        return {
+          icon: iconMap[amenity] || 'checkmark-circle-outline',
+          label: amenity,
+        };
+      })
+    : defaultServices;
+
+
   return (
     <View style={styles.container}>
-      {/* Animated Header Image */}
-      <Animated.View
-        style={[
-          styles.headerContainer,
-          {
-            transform: [{ translateY: headerTranslateY }],
-          },
-        ]}
-      >
-        <Animated.Image
-          source={{
-            uri: destination.images?.[selectedImageIndex] || destination.imageUrl,
-          }}
+      {/* Fixed Header - Always visible */}
+      <View style={styles.fixedHeader} pointerEvents="box-none">
+        <Animated.View
           style={[
-            styles.headerImage,
+            styles.fixedHeaderBackground,
             {
-              opacity: imageOpacity,
-              transform: [{ scale: imageScale }],
+              opacity: fixedHeaderBgOpacity,
             },
           ]}
         />
-        <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.7)']}
-          style={styles.headerGradient}
-        />
-      </Animated.View>
-
-      {/* Fixed Header with Back Button */}
-      <SafeAreaView style={styles.fixedHeader} edges={['top']}>
-        <View style={styles.headerButtons}>
+        <SafeAreaView style={styles.fixedHeaderContent} edges={['top']} pointerEvents="box-none">
           <TouchableOpacity
             style={styles.headerButton}
             onPress={() => navigation.goBack()}
           >
-            <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+            <Ionicons name="chevron-back" size={20} color={COLORS.white} />
           </TouchableOpacity>
 
-          <Animated.Text
-            style={[
-              styles.headerTitle,
-              {
-                opacity: titleOpacity,
-              },
-            ]}
-            numberOfLines={1}
-          >
-            {destination.name}
-          </Animated.Text>
+          <View style={styles.fixedHeaderTitleContainer}>
+            <Animated.Text
+              style={[
+                styles.fixedHeaderTitle,
+                styles.fixedHeaderTitleWhite,
+                {
+                  opacity: fixedHeaderWhiteTextOpacity,
+                },
+              ]}
+              numberOfLines={1}
+            >
+              {destination.name}
+            </Animated.Text>
+            <Animated.Text
+              style={[
+                styles.fixedHeaderTitle,
+                styles.fixedHeaderTitleBlack,
+                {
+                  opacity: fixedHeaderBlackTextOpacity,
+                },
+              ]}
+              numberOfLines={1}
+            >
+              {destination.name}
+            </Animated.Text>
+          </View>
 
           <TouchableOpacity
             style={styles.headerButton}
@@ -225,204 +339,426 @@ const DestinationDetailScreen = () => {
           >
             <Ionicons
               name={isFavorite ? 'heart' : 'heart-outline'}
-              size={24}
+              size={20}
               color={isFavorite ? '#FF0000' : COLORS.white}
             />
           </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+        </SafeAreaView>
+      </View>
+
+      {/* Animated Hero Image - Scrolls with content */}
+      <Animated.View
+        style={[
+          styles.heroContainer,
+          {
+            transform: [{ translateY: headerTranslateY }],
+            opacity: headerOpacity,
+          },
+        ]}
+      >
+        <FlatList
+          ref={imageScrollRef}
+          data={images}
+          renderItem={renderImageItem}
+          keyExtractor={(item, index) => index.toString()}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={(event) => {
+            const index = Math.round(event.nativeEvent.contentOffset.x / width);
+            setCurrentImageIndex(index);
+          }}
+          scrollEnabled={images.length > 1}
+        />
+
+        {/* Pagination Dots */}
+        {images.length > 1 && (
+          <View style={styles.paginationDots} pointerEvents="none">
+            {images.map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.dot,
+                  index === currentImageIndex && styles.dotActive,
+                ]}
+              />
+            ))}
+          </View>
+        )}
+      </Animated.View>
 
       {/* Scrollable Content */}
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
-        scrollEventThrottle={16}
+        contentContainerStyle={styles.scrollContent}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: true }
         )}
-        contentContainerStyle={styles.scrollContent}
+        scrollEventThrottle={16}
       >
-        {/* Spacer for header */}
-        <View style={{ height: HEADER_MAX_HEIGHT }} />
+        {/* Spacer for hero image */}
+        <View style={{ height: HEADER_HEIGHT }} />
 
-        {/* Content Card */}
-        <View style={styles.contentCard}>
-          {/* Image Gallery */}
-          {destination.images && destination.images.length > 1 && (
-            <View style={styles.gallerySection}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.galleryContainer}
-              >
-                {destination.images.map((image, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    onPress={() => setSelectedImageIndex(index)}
-                    activeOpacity={0.8}
-                  >
-                    <Image
-                      source={{ uri: image }}
-                      style={[
-                        styles.galleryImage,
-                        selectedImageIndex === index && styles.galleryImageSelected,
-                      ]}
-                    />
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
+        {/* Title and Location */}
+        <View style={styles.titleSection}>
+          <Text style={styles.title}>{destination.name}</Text>
+          <View style={styles.locationRow}>
+            <Ionicons name="location" size={16} color="#FF0000" />
+            <Text style={styles.locationText}>{destination.country}</Text>
+          </View>
+        </View>
+
+        {/* Statistics Row - All in one line */}
+        <View style={styles.statsRow}>
+          <Text style={styles.visitedText}>Đã ghé thăm {visitedCount.toLocaleString('vi-VN')}</Text>
+          <View style={styles.statPill}>
+            <Ionicons name="star" size={14} color={COLORS.rating} />
+            <Text style={styles.statPillText}>
+              {getRealTimeRating().toFixed(1)}
+            </Text>
+          </View>
+          <View style={styles.statPill}>
+            <Text style={styles.statPillText}>Đánh giá ({getRealTimeReviewsCount()})</Text>
+          </View>
+        </View>
+
+        {/* Description */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Mô tả</Text>
+          <Text
+            style={styles.description}
+            numberOfLines={expandedDescription ? undefined : 4}
+          >
+            {destination.description || 'Chưa có mô tả chi tiết.'}
+          </Text>
+          {destination.description && destination.description.length > 200 && (
+            <TouchableOpacity
+              onPress={() => setExpandedDescription(!expandedDescription)}
+            >
+              <Text style={styles.readMore}>
+                {expandedDescription ? 'Thu gọn' : 'Đọc thêm'}
+              </Text>
+            </TouchableOpacity>
           )}
+        </View>
 
-          {/* Title and Location */}
-          <View style={styles.titleSection}>
-            <View style={styles.titleRow}>
-              <View style={styles.titleLeft}>
-                <Text style={styles.name}>{destination.name}</Text>
-                <View style={styles.locationRow}>
-                  <Ionicons name="location" size={16} color={COLORS.primary} />
-                  <Text style={styles.location}>{destination.country}</Text>
-                </View>
-              </View>
-              <View style={styles.ratingBadge}>
-                <Ionicons name="star" size={16} color={COLORS.rating} />
-                <Text style={styles.ratingText}>{getRealTimeRating()}</Text>
-              </View>
-            </View>
-
-            {/* Stats */}
-            <View style={styles.statsRow}>
-              <View style={styles.statItem}>
-                <Ionicons name="time-outline" size={20} color={COLORS.primary} />
-                <Text style={styles.statText}>{destination.duration}</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Ionicons name="people-outline" size={20} color={COLORS.primary} />
-                <Text style={styles.statText}>{getRealTimeReviewsCount()} reviews</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Ionicons name="pricetag-outline" size={20} color={COLORS.primary} />
-                <Text style={styles.statText}>${destination.price}</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Description */}
+        {/* What's Included Section - Horizontal Pills */}
+        {servicesToShow.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Mô tả</Text>
-            <Text style={styles.description}>{destination.description}</Text>
-          </View>
-
-          {/* Highlights */}
-          {destination.highlights && destination.highlights.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Điểm nổi bật</Text>
-              {destination.highlights.map((highlight, index) => (
-                <View
-                  key={index}
-                  style={styles.highlightItem}
-                >
-                  <View style={styles.highlightBullet}>
-                    <Ionicons name="checkmark" size={16} color={COLORS.white} />
-                  </View>
-                  <Text style={styles.highlightText}>{highlight}</Text>
+            <Text style={styles.sectionTitle}>Bao gồm</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.includedContainer}
+            >
+              {servicesToShow.map((service, index) => (
+                <View key={index} style={styles.includedPill}>
+                  <Ionicons name={service.icon as any} size={20} color={COLORS.primary} />
+                  <Text style={styles.includedPillText}>{service.label}</Text>
                 </View>
               ))}
-            </View>
-          )}
+            </ScrollView>
+          </View>
+        )}
 
-          {/* Amenities */}
-          {destination.amenities && destination.amenities.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Tiện ích</Text>
-              <View style={styles.amenitiesContainer}>
-                {destination.amenities.map((amenity, index) => (
-                  <View
-                    key={index}
-                    style={styles.amenityChip}
-                  >
-                    <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
-                    <Text style={styles.amenityText}>{amenity}</Text>
+        {/* Location/Map Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Vị trí</Text>
+          <View style={styles.mapContainer}>
+            {(() => {
+              const coords = getDestinationCoordinates(destination);
+              const { latitude, longitude } = coords;
+              
+              // Debug logging
+              console.log('🗺️ Rendering map:', {
+                destinationName: destination.name,
+                hasCoordinates: !!(latitude && longitude),
+                latitude,
+                longitude,
+                rawDestination: {
+                  directLat: destination.latitude,
+                  directLng: destination.longitude,
+                  locationLat: (destination as any).location?.latitude,
+                  locationLng: (destination as any).location?.longitude,
+                }
+              });
+              
+              if (!latitude || !longitude) {
+                console.warn('⚠️ No coordinates available for destination:', destination.name);
+                return (
+                  <View style={styles.mapPlaceholder}>
+                    <Ionicons name="map-outline" size={48} color={COLORS.textSecondary} />
+                    <Text style={styles.mapPlaceholderText}>Bản đồ không khả dụng</Text>
+                    <Text style={styles.mapPlaceholderSubtext}>
+                      Không có tọa độ cho địa điểm này
+                    </Text>
                   </View>
-                ))}
-              </View>
-            </View>
-          )}
+                );
+              }
 
-          {/* Reviews Section */}
-          <View style={styles.section}>
-            <View style={styles.reviewsHeader}>
-              <Text style={styles.sectionTitle}>Đánh giá</Text>
-              {reviews.length > 0 && (
+              // Web: Use iframe HTML directly to embed Google Maps
+              if (Platform.OS === 'web') {
+                const embedMapUrl = `https://www.google.com/maps?q=${latitude},${longitude}&z=14&output=embed`;
+                
+                // Web-only: Render iframe using DOM manipulation
+                const MapIframe = () => {
+                  const containerRef = useRef<any>(null);
+                  
+                  useEffect(() => {
+                    if (containerRef.current && typeof document !== 'undefined') {
+                      // Get the native DOM node from React Native View
+                      // @ts-ignore - Web-only: Access native node
+                      const nativeNode = containerRef.current?._nativeNode || containerRef.current;
+                      if (nativeNode && nativeNode.style) {
+                        // Create iframe element
+                        const iframe = document.createElement('iframe');
+                        iframe.src = embedMapUrl;
+                        iframe.width = '100%';
+                        iframe.height = '100%';
+                        iframe.style.border = '0';
+                        iframe.style.borderRadius = '8px';
+                        iframe.style.display = 'block';
+                        iframe.setAttribute('allowfullscreen', '');
+                        iframe.setAttribute('loading', 'lazy');
+                        iframe.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
+                        iframe.title = `Map of ${destination.name}`;
+                        
+                        // Clear container and append iframe
+                        if (nativeNode.parentElement) {
+                          const parent = nativeNode.parentElement;
+                          parent.innerHTML = '';
+                          parent.appendChild(iframe);
+                        }
+                      }
+                    }
+                  }, []);
+                  
+                  return (
+                    <View style={styles.webMapWrapper}>
+                      <View 
+                        ref={containerRef}
+                        style={styles.mapImage}
+                        // @ts-ignore - Web-only property
+                        dangerouslySetInnerHTML={{
+                          __html: `<iframe src="${embedMapUrl}" width="100%" height="100%" style="border:0; border-radius: 8px; display: block;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Map of ${destination.name}"></iframe>`,
+                        }}
+                      />
+                      {/* Zoom Controls */}
+                      <View style={styles.zoomControls}>
+                        <TouchableOpacity
+                          style={[styles.zoomButton, styles.zoomButtonTop]}
+                          onPress={() => {
+                            const latLng = `${latitude},${longitude}`;
+                            Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${latLng}&zoom=16`);
+                          }}
+                        >
+                          <Ionicons name="add" size={20} color={COLORS.text} />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.zoomButton, styles.zoomButtonBottom]}
+                          onPress={() => {
+                            const latLng = `${latitude},${longitude}`;
+                            Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${latLng}&zoom=12`);
+                          }}
+                        >
+                          <Ionicons name="remove" size={20} color={COLORS.text} />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  );
+                };
+                
+                return <MapIframe />;
+              }
+
+              // Android/iOS: Use WebView with HTML content (works without native modules)
+              // This is the primary solution - works in Expo Go and all environments
+              // Create HTML with embedded iframe for Google Maps
+              
+              try {
+                const { WebView } = require('react-native-webview');
+                
+                const mapHtml = `
+                  <!DOCTYPE html>
+                  <html>
+                    <head>
+                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                      <style>
+                        body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
+                        iframe { width: 100%; height: 100%; border: 0; }
+                      </style>
+                    </head>
+                    <body>
+                      <iframe 
+                        src="https://www.google.com/maps?q=${latitude},${longitude}&z=14&output=embed"
+                        allowfullscreen
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade">
+                      </iframe>
+                    </body>
+                  </html>
+                `;
+                
+                return (
+                  <View style={styles.mapWrapper}>
+                    <WebView
+                      source={{ html: mapHtml }}
+                      style={styles.mapImage}
+                      javaScriptEnabled={true}
+                      domStorageEnabled={true}
+                      startInLoadingState={true}
+                      scalesPageToFit={true}
+                      onError={(error: any) => {
+                        console.error('❌ WebView map failed:', error);
+                      }}
+                      onLoadEnd={() => {
+                        console.log('✅ WebView map loaded');
+                      }}
+                    />
+                    {/* Zoom Controls */}
+                    <View style={styles.zoomControls}>
+                      <TouchableOpacity
+                        style={[styles.zoomButton, styles.zoomButtonTop]}
+                        onPress={() => {
+                          const latLng = `${latitude},${longitude}`;
+                          const scheme = Platform.select({
+                            ios: 'maps:0,0?q=',
+                            android: 'geo:0,0?q=',
+                          });
+                          const label = encodeURIComponent(destination.name);
+                          const url = Platform.select({
+                            ios: `${scheme}${label}@${latLng}`,
+                            android: `${scheme}${latLng}(${label})`,
+                          });
+                          Linking.openURL(url || `https://www.google.com/maps/search/?api=1&query=${latLng}&zoom=16`);
+                        }}
+                      >
+                        <Ionicons name="add" size={20} color={COLORS.text} />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.zoomButton, styles.zoomButtonBottom]}
+                        onPress={() => {
+                          const latLng = `${latitude},${longitude}`;
+                          const scheme = Platform.select({
+                            ios: 'maps:0,0?q=',
+                            android: 'geo:0,0?q=',
+                          });
+                          const label = encodeURIComponent(destination.name);
+                          const url = Platform.select({
+                            ios: `${scheme}${label}@${latLng}`,
+                            android: `${scheme}${latLng}(${label})`,
+                          });
+                          Linking.openURL(url || `https://www.google.com/maps/search/?api=1&query=${latLng}&zoom=12`);
+                        }}
+                      >
+                        <Ionicons name="remove" size={20} color={COLORS.text} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                );
+              } catch (webViewError) {
+                console.error('❌ WebView not available:', webViewError);
+              }
+              
+              // Final fallback: Placeholder
+              return (
                 <TouchableOpacity
+                  style={styles.mapWrapper}
+                  activeOpacity={0.9}
+                  onPress={() => {
+                    const latLng = `${latitude},${longitude}`;
+                    Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${latLng}`);
+                  }}
+                >
+                  <View style={styles.mapPlaceholder}>
+                    <View style={styles.mapPlaceholderContent}>
+                      <Ionicons name="map-outline" size={48} color={COLORS.primary} />
+                      <Text style={styles.mapPlaceholderTitle}>Xem bản đồ</Text>
+                      <Text style={styles.mapPlaceholderText}>Nhấn để mở Google Maps</Text>
+                      <Text style={styles.mapPlaceholderSubtext}>
+                        Chạy: npx expo run:android để rebuild app
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })()}
+          </View>
+        </View>
+
+        {/* Reviews Section */}
+        <View style={styles.section}>
+          <View style={styles.reviewsHeader}>
+            <Text style={styles.reviewsHeaderTitle}>Đánh giá ({getRealTimeReviewsCount()})</Text>
+            <View style={styles.reviewsRatingRow}>
+              <Ionicons name="star" size={20} color={COLORS.rating} />
+              <Text style={styles.reviewsRatingText}>
+                {getRealTimeRating().toFixed(1)}
+              </Text>
+            </View>
+          </View>
+
+          {reviews.length > 0 ? (
+            <View>
+              {reviews.slice(0, 4).map((review, index) => (
+                <View key={review.id || index} style={styles.reviewItem}>
+                  <Image
+                    source={{ uri: review.userAvatar || 'https://via.placeholder.com/48' }}
+                    style={styles.reviewAvatar}
+                  />
+                  <View style={styles.reviewContent}>
+                    <View style={styles.reviewHeaderRow}>
+                      <Text style={styles.reviewName}>{review.userName || 'Người dùng'}</Text>
+                      <Text style={styles.reviewDate}>{formatDate(review.createdAt)}</Text>
+                    </View>
+                    <View style={styles.reviewStarsRow}>
+                      {renderStars(review.rating)}
+                    </View>
+                    {review.comment && (
+                      <Text style={styles.reviewComment}>{review.comment}</Text>
+                    )}
+                  </View>
+                </View>
+              ))}
+              {reviews.length > 4 && (
+                <TouchableOpacity
+                  style={styles.seeAllReviewsButton}
                   onPress={() => navigation.navigate('Reviews', { destinationId: destination.id })}
                 >
-                  <Text style={styles.seeAll}>Xem tất cả</Text>
+                  <Text style={styles.seeAllReviewsButtonText}>
+                    Xem tất cả ({reviews.length} đánh giá)
+                  </Text>
                 </TouchableOpacity>
               )}
             </View>
-            
-            {reviews.length > 0 ? (
-              <View>
-                {reviews.slice(0, 3).map((review, index) => (
-                  <View key={review.id || index} style={styles.reviewItem}>
-                    <View style={styles.reviewHeader}>
-                      <View style={styles.reviewUser}>
-                        <Image
-                          source={{ uri: review.userAvatar || 'https://via.placeholder.com/40' }}
-                          style={styles.reviewAvatar}
-                        />
-                        <View>
-                          <Text style={styles.reviewUserName}>{review.userName || 'User'}</Text>
-                          <View style={styles.reviewRating}>
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Ionicons
-                                key={star}
-                                name="star"
-                                size={14}
-                                color={star <= review.rating ? COLORS.rating : COLORS.lightGray}
-                              />
-                            ))}
-                          </View>
-                        </View>
-                      </View>
-                      <Text style={styles.reviewDate}>
-                        {review.createdAt 
-                          ? new Date(review.createdAt).toLocaleDateString('vi-VN')
-                          : 'Hôm nay'}
-                      </Text>
-                    </View>
-                    <Text style={styles.reviewComment} numberOfLines={3}>
-                      {review.comment}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            ) : (
-              <View style={styles.noReviews}>
-                <Ionicons name="chatbubble-outline" size={48} color={COLORS.lightGray} />
-                <Text style={styles.noReviewsText}>Chưa có đánh giá nào</Text>
-              </View>
-            )}
-          </View>
-
-          {/* Bottom Spacing */}
-          <View style={{ height: 100 }} />
+          ) : (
+            <View style={styles.noReviews}>
+              <Text style={styles.noReviewsText}>Chưa có đánh giá nào</Text>
+            </View>
+          )}
         </View>
+
+        {/* Bottom Spacing for Sticky Bar */}
+        <View style={{ height: 100 }} />
       </Animated.ScrollView>
 
-      {/* Bottom Bar */}
+      {/* Sticky Bottom Bar */}
       <View style={styles.bottomBar}>
         <View style={styles.priceContainer}>
-          <Text style={styles.priceLabel}>Chỉ từ</Text>
-          <Text style={styles.priceValue}>${destination.price}</Text>
-          <Text style={styles.priceUnit}>/ người</Text>
+          <View style={styles.priceRow}>
+            <Text style={styles.priceValue}>${destination.price}</Text>
+            <Text style={styles.priceUnit}>/ người</Text>
+          </View>
+          <Text style={styles.priceDisclaimer}>Bao gồm thuế & phí</Text>
         </View>
-        <Button
-          title="Đặt ngay"
-          onPress={handleBookNow}
+        <TouchableOpacity
           style={styles.bookButton}
-        />
+          onPress={handleBookNow}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.bookButtonText}>Đặt ngay</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -431,197 +767,324 @@ const DestinationDetailScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  headerContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: HEADER_MAX_HEIGHT,
-    overflow: 'hidden',
-  },
-  headerImage: {
-    width: '100%',
-    height: '100%',
-  },
-  headerGradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: '50%',
+    backgroundColor: COLORS.white,
   },
   fixedHeader: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    zIndex: 10,
+    zIndex: 100,
   },
-  headerButtons: {
+  fixedHeaderBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: COLORS.white,
+  },
+  fixedHeaderContent: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: SIZES.md,
-    paddingVertical: SIZES.sm,
+    paddingTop: SIZES.sm,
+    paddingBottom: SIZES.sm,
+    minHeight: 56,
+  },
+  fixedHeaderTitleContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: SIZES.sm,
+    position: 'relative',
+  },
+  fixedHeaderTitle: {
+    ...FONTS.bold,
+    fontSize: SIZES.h5,
+    textAlign: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+  },
+  fixedHeaderTitleWhite: {
+    color: COLORS.white,
+  },
+  fixedHeaderTitleBlack: {
+    color: COLORS.black,
+  },
+  heroContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: HEADER_HEIGHT,
+    width: '100%',
+    overflow: 'hidden',
+    zIndex: 1,
+  },
+  heroImage: {
+    width: width,
+    height: HEADER_HEIGHT,
   },
   headerButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(128, 128, 128, 0.6)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: {
-    ...FONTS.bold,
-    fontSize: SIZES.h5,
-    color: COLORS.white,
-    flex: 1,
-    textAlign: 'center',
-    marginHorizontal: SIZES.sm,
+  paginationDots: {
+    position: 'absolute',
+    bottom: SIZES.md,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: SIZES.xs,
+    zIndex: 10,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+  },
+  dotActive: {
+    width: 24,
+    backgroundColor: '#FF0000',
   },
   scrollContent: {
-    paddingBottom: 20,
-  },
-  contentCard: {
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: SIZES.radiusXl,
-    borderTopRightRadius: SIZES.radiusXl,
-    paddingTop: SIZES.lg,
-  },
-  gallerySection: {
-    marginBottom: SIZES.lg,
-  },
-  galleryContainer: {
-    paddingHorizontal: SIZES.md,
-    gap: SIZES.sm,
-  },
-  galleryImage: {
-    width: 80,
-    height: 80,
-    borderRadius: SIZES.radius,
-    marginRight: SIZES.sm,
-    opacity: 0.6,
-  },
-  galleryImageSelected: {
-    opacity: 1,
-    borderWidth: 2,
-    borderColor: COLORS.primary,
+    paddingBottom: SIZES.xl,
   },
   titleSection: {
     paddingHorizontal: SIZES.md,
-    marginBottom: SIZES.lg,
+    paddingTop: SIZES.lg,
+    paddingBottom: SIZES.sm,
   },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: SIZES.md,
-  },
-  titleLeft: {
-    flex: 1,
-  },
-  name: {
+  title: {
     ...FONTS.bold,
-    fontSize: SIZES.h3,
-    color: COLORS.text,
-    marginBottom: 4,
+    fontSize: SIZES.h1 + 4,
+    color: COLORS.black,
+    lineHeight: 40,
+    marginBottom: SIZES.xs,
   },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: SIZES.xs,
+    marginTop: SIZES.xs,
   },
-  location: {
-    ...FONTS.medium,
-    fontSize: SIZES.body1,
-    color: COLORS.textSecondary,
-  },
-  ratingBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: COLORS.veryLightGray,
-    paddingHorizontal: SIZES.sm,
-    paddingVertical: SIZES.xs,
-    borderRadius: SIZES.radiusFull,
-  },
-  ratingText: {
+  locationText: {
     ...FONTS.bold,
-    fontSize: SIZES.body1,
-    color: COLORS.text,
+    fontSize: SIZES.body1 + 2,
+    color: '#666666',
   },
   statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: COLORS.veryLightGray,
-    borderRadius: SIZES.radiusMd,
-    padding: SIZES.md,
-  },
-  statItem: {
     alignItems: 'center',
-    gap: 4,
+    paddingHorizontal: SIZES.md,
+    marginBottom: SIZES.xl,
+    gap: SIZES.md,
   },
-  statText: {
+  visitedText: {
+    ...FONTS.regular,
+    fontSize: SIZES.body1,
+    color: COLORS.black,
+  },
+  statPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SIZES.xs,
+    paddingHorizontal: SIZES.md,
+    paddingVertical: SIZES.xs,
+    borderRadius: SIZES.radiusFull,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    backgroundColor: COLORS.white,
+  },
+  statPillText: {
     ...FONTS.medium,
-    fontSize: SIZES.body3,
-    color: COLORS.text,
+    fontSize: SIZES.body3+1,
+    color: COLORS.black,
   },
   section: {
     paddingHorizontal: SIZES.md,
-    marginBottom: SIZES.lg,
+    marginBottom: SIZES.xl,
   },
   sectionTitle: {
     ...FONTS.bold,
-    fontSize: SIZES.h5,
-    color: COLORS.text,
+    fontSize: SIZES.h3-1,
+    color: COLORS.black,
     marginBottom: SIZES.md,
+    lineHeight: SIZES.h4 + 4,
   },
   description: {
     ...FONTS.regular,
     fontSize: SIZES.body1,
-    color: COLORS.textSecondary,
+    color: COLORS.black,
     lineHeight: 24,
   },
-  highlightItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SIZES.sm,
-    gap: SIZES.sm,
-  },
-  highlightBullet: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  highlightText: {
-    ...FONTS.regular,
+  readMore: {
+    ...FONTS.medium,
     fontSize: SIZES.body1,
-    color: COLORS.text,
-    flex: 1,
+    color: '#FF0000',
+    marginTop: SIZES.xs,
   },
-  amenitiesContainer: {
+  includedContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SIZES.sm,
+    gap: SIZES.md,
+    paddingRight: SIZES.md,
   },
-  amenityChip: {
+  includedPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: COLORS.veryLightGray,
+    gap: SIZES.xs,
     paddingHorizontal: SIZES.md,
     paddingVertical: SIZES.sm,
     borderRadius: SIZES.radiusFull,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    backgroundColor: COLORS.white,
   },
-  amenityText: {
-    ...FONTS.medium,
+  includedPillText: {
+    ...FONTS.semiBold,
+    fontSize: SIZES.body1,
+    color: COLORS.black,
+  },
+  locationSubtitle: {
+    ...FONTS.regular,
     fontSize: SIZES.body2,
+    color: COLORS.textSecondary,
+    marginBottom: SIZES.md,
+  },
+  mapContainer: {
+    height: 200,
+    borderRadius: SIZES.radiusMd,
+    overflow: 'hidden',
+    marginBottom: SIZES.md,
+    backgroundColor: '#E8F5E9', // Light green background (sẽ bị che bởi map image khi load)
+  },
+  webMapWrapper: {
+    width: '100%',
+    height: '100%',
+    position: 'relative',
+    borderRadius: SIZES.radiusMd,
+    overflow: 'hidden',
+    backgroundColor: '#E8F5E9', // Light green background fallback
+  },
+  zoomControls: {
+    position: 'absolute',
+    right: SIZES.sm,
+    bottom: SIZES.sm,
+    flexDirection: 'column',
+    gap: 0,
+    borderRadius: SIZES.radius,
+    overflow: 'hidden',
+    ...SHADOWS.medium,
+  },
+  zoomButton: {
+    width: 36,
+    height: 36,
+    backgroundColor: COLORS.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  zoomButtonTop: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  zoomButtonBottom: {
+    // No border for bottom button
+  },
+  mapWrapper: {
+    width: '100%',
+    height: '100%',
+    position: 'relative',
+    backgroundColor: '#E8F5E9', // Light green background fallback
+  },
+  mapImage: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'transparent', // Ensure image shows through
+  },
+  map: {
+    width: '100%',
+    height: '100%',
+  },
+  customMarker: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mapMarkerOverlay: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginTop: -32,
+    marginLeft: -16,
+    zIndex: 10,
+  },
+  yellowMarker: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    ...SHADOWS.medium,
+  },
+  mapExpandButton: {
+    position: 'absolute',
+    bottom: SIZES.sm,
+    right: SIZES.sm,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...SHADOWS.medium,
+  },
+  mapPlaceholder: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E8F5E9', // Light green background
+    position: 'relative',
+  },
+  mapPlaceholderContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: SIZES.md,
+  },
+  mapPlaceholderTitle: {
+    ...FONTS.bold,
+    fontSize: SIZES.h4,
     color: COLORS.text,
+    marginTop: SIZES.md,
+    marginBottom: SIZES.xs,
+  },
+  mapPlaceholderText: {
+    ...FONTS.regular,
+    fontSize: SIZES.body2,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+  },
+  mapPlaceholderSubtext: {
+    ...FONTS.regular,
+    fontSize: SIZES.body2,
+    color: COLORS.textSecondary,
+    marginTop: SIZES.sm,
+    textAlign: 'center',
+  },
+  mapAddress: {
+    ...FONTS.semiBold,
+    fontSize: SIZES.body1,
+    color: COLORS.black,
   },
   reviewsHeader: {
     flexDirection: 'row',
@@ -629,90 +1092,100 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: SIZES.md,
   },
-  seeAll: {
-    ...FONTS.semiBold,
-    color: COLORS.primary,
-    fontSize: SIZES.body1,
-    marginBottom: SIZES.md,
-  },
-  reviewSummary: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SIZES.md,
-  },
-  reviewScore: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: COLORS.veryLightGray,
-    paddingHorizontal: SIZES.md,
-    paddingVertical: SIZES.sm,
-    borderRadius: SIZES.radius,
-  },
-  reviewScoreText: {
+  reviewsHeaderTitle: {
     ...FONTS.bold,
     fontSize: SIZES.h4,
-    color: COLORS.text,
+    color: COLORS.black,
+    lineHeight: SIZES.h4 + 4,
   },
-  reviewCount: {
-    ...FONTS.regular,
-    fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
-  },
-  reviewItem: {
-    backgroundColor: COLORS.veryLightGray,
-    borderRadius: SIZES.radiusMd,
-    padding: SIZES.md,
-    marginBottom: SIZES.sm,
-  },
-  reviewHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: SIZES.sm,
-  },
-  reviewUser: {
+  reviewsRatingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SIZES.sm,
-    flex: 1,
+    justifyContent: 'center',
+    gap: SIZES.xs,
+  },
+  reviewsRatingText: {
+    ...FONTS.regular,
+    fontSize: SIZES.h5,
+    color: COLORS.black,
+    lineHeight: SIZES.h5 + 4,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+    marginTop: 4,
+    marginRight: 10,
+  },
+  reviewItem: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.white,
+    borderRadius: SIZES.radiusMd,
+    padding: SIZES.md,
+    marginBottom: SIZES.md,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    ...SHADOWS.light,
+    gap: SIZES.md,
   },
   reviewAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: COLORS.lightGray,
   },
-  reviewUserName: {
+  reviewContent: {
+    flex: 1,
+  },
+  reviewHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SIZES.xs,
+  },
+  reviewName: {
     ...FONTS.semiBold,
     fontSize: SIZES.body1,
-    color: COLORS.text,
-  },
-  reviewRating: {
-    flexDirection: 'row',
-    gap: 2,
-    marginTop: 2,
+    color: COLORS.black,
   },
   reviewDate: {
     ...FONTS.regular,
     fontSize: SIZES.body2,
     color: COLORS.textSecondary,
   },
+  reviewStarsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    marginBottom: SIZES.sm,
+  },
   reviewComment: {
     ...FONTS.regular,
     fontSize: SIZES.body1,
-    color: COLORS.text,
-    lineHeight: 20,
+    color: COLORS.black,
+    lineHeight: 22,
+  },
+  seeAllReviewsButton: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: SIZES.radius,
+    paddingVertical: SIZES.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: SIZES.md,
+    backgroundColor: COLORS.white,
+    ...SHADOWS.light,
+  },
+  seeAllReviewsButtonText: {
+    ...FONTS.semiBold,
+    fontSize: SIZES.body1,
+    color: COLORS.black,
   },
   noReviews: {
-    alignItems: 'center',
     paddingVertical: SIZES.xl,
+    alignItems: 'center',
   },
   noReviewsText: {
     ...FONTS.regular,
     fontSize: SIZES.body1,
     color: COLORS.textSecondary,
-    marginTop: SIZES.sm,
   },
   bottomBar: {
     position: 'absolute',
@@ -723,36 +1196,63 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: COLORS.white,
-    paddingHorizontal: SIZES.md,
-    paddingVertical: SIZES.md,
-    ...SHADOWS.heavy,
+    paddingHorizontal: SIZES.md+1,
+    paddingVertical: SIZES.lg,
+    paddingTop: SIZES.md-2,
+    paddingBottom: SIZES.md + (Platform.OS === 'ios' ? 20 : 10),
+    borderTopColor: COLORS.lightGray,
+    borderTopWidth: 1,
+    shadowColor: COLORS.black,
+    shadowOffset: {
+      width: 0,
+      height: -10,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 25,
+    elevation: 20,
   },
   priceContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  priceRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    gap: 4,
-  },
-  priceLabel: {
-    ...FONTS.regular,
-    fontSize: SIZES.body3,
-    color: COLORS.textSecondary,
+    gap: 3,
+    marginBottom: 5,
   },
   priceValue: {
     ...FONTS.bold,
-    fontSize: SIZES.h3,
-    color: COLORS.primary,
+    fontSize: SIZES.h3-1,
+    color: COLORS.black,
   },
   priceUnit: {
     ...FONTS.regular,
+    fontSize: SIZES.body1+2,
+    color: COLORS.primary,
+  },
+  priceDisclaimer: {
+    ...FONTS.regular,
     fontSize: SIZES.body3,
-    color: COLORS.textSecondary,
+    color: '#888888',
+    marginTop: 2,
   },
   bookButton: {
-    flex: 1,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: SIZES.xl,
+    paddingVertical: SIZES.md ,
+    borderRadius: SIZES.radiusMd,
     marginLeft: SIZES.md,
+    minWidth: 143,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...SHADOWS.medium,
+  },
+  bookButtonText: {
+    ...FONTS.bold,
+    fontSize: SIZES.body1+2,
+    color: COLORS.white,
   },
 });
 
 export default DestinationDetailScreen;
-
-

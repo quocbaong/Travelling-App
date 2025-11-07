@@ -70,7 +70,7 @@ const RegisterScreen = () => {
     setLoading(false);
     
     if (success) {
-      navigation.replace('MainTabs');
+      navigation.replace('RegisterSuccess');
     } else {
       alert('Đăng ký thất bại. Vui lòng thử lại.');
     }

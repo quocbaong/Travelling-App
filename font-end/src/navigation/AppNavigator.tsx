@@ -11,6 +11,7 @@ import { useAuth } from '../contexts/AuthContext';
 import LoadingScreen from '../screens/LoadingScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
+import RegisterSuccessScreen from '../screens/RegisterSuccessScreen';
 import HomeScreen from '../screens/HomeScreen';
 import ExploreScreen from '../screens/ExploreScreen';
 import BookingsScreen from '../screens/BookingsScreen';
@@ -132,6 +133,7 @@ export const AppNavigator = () => {
         <Stack.Screen name="Loading" component={LoadingScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen name="RegisterSuccess" component={RegisterSuccessScreen} />
         <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen 
           name="DestinationDetail" 
