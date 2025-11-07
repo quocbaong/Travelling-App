@@ -78,7 +78,7 @@ const TermsOfServiceScreen = () => {
             <View style={styles.updateItem}>
               <View style={styles.updateItemLeft}>
                 <View style={styles.updateIcon}>
-                  <Ionicons name="calendar-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="calendar-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.updateInfo}>
                   <Text style={styles.updateTitle}>Cập nhật lần cuối</Text>
@@ -92,7 +92,7 @@ const TermsOfServiceScreen = () => {
             <View style={styles.updateItem}>
               <View style={styles.updateItemLeft}>
                 <View style={styles.updateIcon}>
-                  <Ionicons name="document-text-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="document-text-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.updateInfo}>
                   <Text style={styles.updateTitle}>Phiên bản</Text>
@@ -106,7 +106,7 @@ const TermsOfServiceScreen = () => {
             <View style={styles.updateItem}>
               <View style={styles.updateItemLeft}>
                 <View style={styles.updateIcon}>
-                  <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.updateInfo}>
                   <Text style={styles.updateTitle}>Trạng thái</Text>
@@ -137,7 +137,7 @@ const TermsOfServiceScreen = () => {
             <View style={styles.contactItem}>
               <View style={styles.contactItemLeft}>
                 <View style={styles.contactIcon}>
-                  <Ionicons name="mail-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="mail-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.contactInfo}>
                   <Text style={styles.contactTitle}>Email pháp lý</Text>
@@ -151,7 +151,7 @@ const TermsOfServiceScreen = () => {
             <View style={styles.contactItem}>
               <View style={styles.contactItemLeft}>
                 <View style={styles.contactIcon}>
-                  <Ionicons name="call-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="call-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.contactInfo}>
                   <Text style={styles.contactTitle}>Hotline</Text>
@@ -165,7 +165,7 @@ const TermsOfServiceScreen = () => {
             <View style={styles.contactItem}>
               <View style={styles.contactItemLeft}>
                 <View style={styles.contactIcon}>
-                  <Ionicons name="location-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="location-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.contactInfo}>
                   <Text style={styles.contactTitle}>Địa chỉ</Text>
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
   updateTitle: {
     ...FONTS.semiBold,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
     marginBottom: 2,
   },
   updateValue: {
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   termContent: {
     ...FONTS.regular,
     fontSize: SIZES.body1,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
     lineHeight: 22,
   },
   contactCard: {
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
   contactTitle: {
     ...FONTS.semiBold,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
     marginBottom: 2,
   },
   contactValue: {

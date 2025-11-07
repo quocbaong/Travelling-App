@@ -118,14 +118,14 @@ const SupportScreen = () => {
                 <TouchableOpacity style={styles.supportItem} onPress={item.onPress}>
                   <View style={styles.supportItemLeft}>
                     <View style={styles.supportIcon}>
-                      <Ionicons name={item.icon as any} size={20} color={COLORS.primary} />
+                      <Ionicons name={item.icon as any} size={20} color={COLORS.black} />
                     </View>
                     <View style={styles.supportInfo}>
                       <Text style={styles.supportTitle}>{item.title}</Text>
                       <Text style={styles.supportSubtitle}>{item.subtitle}</Text>
                     </View>
                   </View>
-                  <Ionicons name="chevron-forward" size={16} color={COLORS.gray} />
+                  <Ionicons name="chevron-forward" size={16} color={COLORS.black} />
                 </TouchableOpacity>
                 {index < supportOptions.length - 1 && <View style={styles.divider} />}
               </View>
@@ -144,7 +144,7 @@ const SupportScreen = () => {
                 <View style={styles.contactItem}>
                   <View style={styles.contactItemLeft}>
                     <View style={styles.contactIcon}>
-                      <Ionicons name={item.icon as any} size={20} color={COLORS.primary} />
+                      <Ionicons name={item.icon as any} size={20} color={COLORS.black} />
                     </View>
                     <View style={styles.contactInfo}>
                       <Text style={styles.contactTitle}>{item.title}</Text>
@@ -166,7 +166,7 @@ const SupportScreen = () => {
             <View style={styles.appInfoItem}>
               <View style={styles.appInfoItemLeft}>
                 <View style={styles.appInfoIcon}>
-                  <Ionicons name="phone-portrait-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="phone-portrait-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.appInfoInfo}>
                   <Text style={styles.appInfoTitle}>Phiên bản</Text>
@@ -180,7 +180,7 @@ const SupportScreen = () => {
             <View style={styles.appInfoItem}>
               <View style={styles.appInfoItemLeft}>
                 <View style={styles.appInfoIcon}>
-                  <Ionicons name="calendar-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="calendar-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.appInfoInfo}>
                   <Text style={styles.appInfoTitle}>Ngày cập nhật</Text>
@@ -194,7 +194,7 @@ const SupportScreen = () => {
             <View style={styles.appInfoItem}>
               <View style={styles.appInfoItemLeft}>
                 <View style={styles.appInfoIcon}>
-                  <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.appInfoInfo}>
                   <Text style={styles.appInfoTitle}>Bảo mật</Text>
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   supportSubtitle: {
     ...FONTS.regular,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
   },
   divider: {
     height: 1,
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
   contactTitle: {
     ...FONTS.semiBold,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
     marginBottom: 2,
   },
   contactValue: {
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
   appInfoTitle: {
     ...FONTS.semiBold,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
     marginBottom: 2,
   },
   appInfoValue: {

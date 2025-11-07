@@ -229,7 +229,7 @@ const PersonalInfoScreen = () => {
             <Ionicons 
               name={isEditing ? "close" : "create-outline"} 
               size={20} 
-              color={COLORS.primary} 
+              color={COLORS.text} 
             />
           </TouchableOpacity>
         </View>
@@ -258,7 +258,7 @@ const PersonalInfoScreen = () => {
             <View style={styles.infoItem}>
               <View style={styles.infoItemLeft}>
                 <View style={styles.infoIcon}>
-                  <Ionicons name="person-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="person-outline" size={20} color={COLORS.text} />
                 </View>
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Họ và tên</Text>
@@ -285,7 +285,7 @@ const PersonalInfoScreen = () => {
             <View style={styles.infoItem}>
               <View style={styles.infoItemLeft}>
                 <View style={styles.infoIcon}>
-                  <Ionicons name="mail-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="mail-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Email</Text>
@@ -311,7 +311,7 @@ const PersonalInfoScreen = () => {
             <View style={styles.infoItem}>
               <View style={styles.infoItemLeft}>
                 <View style={styles.infoIcon}>
-                  <Ionicons name="call-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="call-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Số điện thoại</Text>
@@ -337,7 +337,7 @@ const PersonalInfoScreen = () => {
             <View style={styles.infoItem}>
               <View style={styles.infoItemLeft}>
                 <View style={styles.infoIcon}>
-                  <Ionicons name="calendar-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="calendar-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Ngày sinh</Text>
@@ -365,7 +365,7 @@ const PersonalInfoScreen = () => {
             <View style={styles.infoItem}>
               <View style={styles.infoItemLeft}>
                 <View style={styles.infoIcon}>
-                  <Ionicons name="male-female-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="male-female-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Giới tính</Text>
@@ -421,7 +421,7 @@ const PersonalInfoScreen = () => {
             <View style={styles.infoItem}>
               <View style={styles.infoItemLeft}>
                 <View style={styles.infoIcon}>
-                  <Ionicons name="location-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="location-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Địa chỉ</Text>
@@ -431,7 +431,7 @@ const PersonalInfoScreen = () => {
                       value={formData.address}
                       onChangeText={(text) => setFormData(prev => ({ ...prev, address: text }))}
                       placeholder="Nhập địa chỉ"
-                      placeholderTextColor={COLORS.textSecondary}
+                      placeholderTextColor={COLORS.text}
                       multiline
                       numberOfLines={3}
                       textAlignVertical="top"
@@ -617,7 +617,7 @@ const styles = StyleSheet.create({
   infoLabel: {
     ...FONTS.semiBold,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
     marginBottom: SIZES.xs,
   },
   infoValue: {

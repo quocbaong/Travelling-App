@@ -160,7 +160,7 @@ const ProfileScreen = () => {
               style={styles.editButton}
               onPress={() => handleNavigateWithAuth('PersonalInfo', 'Profile')}
             >
-              <Ionicons name="create-outline" size={20} color={COLORS.primary} />
+              <Ionicons name="create-outline" size={20} color={COLORS.black} />
             </TouchableOpacity>
           )}
         </View>
@@ -210,7 +210,7 @@ const ProfileScreen = () => {
                   <Ionicons
                     name="notifications-outline"
                     size={20}
-                    color={COLORS.primary}
+                    color={COLORS.black}
                   />
                 </View>
                 <Text style={styles.menuItemText}>Thông báo</Text>
@@ -232,7 +232,7 @@ const ProfileScreen = () => {
                   <Ionicons
                     name="moon-outline"
                     size={20}
-                    color={COLORS.primary}
+                    color={COLORS.black}
                   />
                 </View>
                 <Text style={styles.menuItemText}>Chế độ tối</Text>
@@ -261,7 +261,7 @@ const ProfileScreen = () => {
                       <Ionicons
                         name={item.icon as any}
                         size={20}
-                        color={COLORS.primary}
+                        color={COLORS.black}
                       />
                     </View>
                     <Text style={styles.menuItemText}>{item.title}</Text>
@@ -273,7 +273,7 @@ const ProfileScreen = () => {
                     <Ionicons
                       name="chevron-forward"
                       size={20}
-                      color={COLORS.gray}
+                      color={COLORS.text}
                     />
                   </View>
                 </TouchableOpacity>
@@ -300,7 +300,7 @@ const ProfileScreen = () => {
                       <Ionicons
                         name={item.icon as any}
                         size={20}
-                        color={COLORS.primary}
+                        color={COLORS.black}
                       />
                     </View>
                     <Text style={styles.menuItemText}>{item.title}</Text>
@@ -308,7 +308,7 @@ const ProfileScreen = () => {
                   <Ionicons
                     name="chevron-forward"
                     size={20}
-                    color={COLORS.gray}
+                    color={COLORS.black}
                   />
                 </TouchableOpacity>
               </View>
@@ -317,22 +317,24 @@ const ProfileScreen = () => {
         </View>
 
         {/* Logout Button */}
-        <View style={styles.section}>
-          <TouchableOpacity 
-            style={styles.logoutButton} 
-            activeOpacity={0.8}
-            onPress={handleLogout}
-          >
-            <Ionicons 
-              name={isGuest ? "log-in-outline" : "log-out-outline"} 
-              size={20} 
-              color={isGuest ? COLORS.primary : COLORS.error} 
-            />
-            <Text style={[styles.logoutText, isGuest && styles.loginText]}>
-              {isGuest ? 'Đăng nhập' : 'Đăng xuất'}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {!isGuest && (
+          <View style={styles.section}>
+            <TouchableOpacity 
+              style={styles.logoutButton} 
+              activeOpacity={0.8}
+              onPress={handleLogout}
+            >
+              <Ionicons 
+                name="log-out-outline" 
+                size={20} 
+                color={COLORS.error} 
+              />
+              <Text style={styles.logoutText}>
+                Đăng xuất
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* App Version */}
         <View style={styles.versionContainer}>
@@ -358,6 +360,7 @@ const styles = StyleSheet.create({
     ...FONTS.bold,
     fontSize: SIZES.h3,
     color: COLORS.text,
+    textAlign: 'center',
   },
   userCard: {
     flexDirection: 'row',
@@ -387,7 +390,7 @@ const styles = StyleSheet.create({
   userEmail: {
     ...FONTS.regular,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
   },
   editButton: {
     width: 40,
@@ -419,7 +422,7 @@ const styles = StyleSheet.create({
   statLabel: {
     ...FONTS.regular,
     fontSize: SIZES.body3,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
   },
   statDivider: {
     width: 1,

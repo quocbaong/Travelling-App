@@ -145,6 +145,7 @@ const styles = StyleSheet.create({
     ...FONTS.bold,
     fontSize: SIZES.h3,
     color: COLORS.text,
+    textAlign: 'center',
   },
   subtitle: {
     ...FONTS.regular,
