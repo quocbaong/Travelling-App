@@ -39,6 +39,7 @@ interface AuthContextType {
   markNotificationAsRead: (notificationId: string) => Promise<void>;
   markAllNotificationsAsRead: () => Promise<void>;
   deleteNotification: (notificationId: string) => Promise<void>;
+  refreshBookings: () => Promise<void>;
 }
 
 const prefersContext = createContext<AuthContextType | undefined>(undefined);
@@ -510,6 +511,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const refreshBookings = async () => {
+    if (user) {
+      try {
+        console.log('🔄 Refreshing bookings for user:', user.id);
+        const bookings = await bookingService.getUserBookings(user.id);
+        console.log('✅ Refreshed bookings:', bookings.length);
+        setUserBookings(bookings);
+      } catch (error) {
+        console.error('Failed to refresh bookings:', error);
+      }
+    }
+  };
+
   const isGuest = !user;
 
   const value: AuthContextType = {
@@ -547,6 +561,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     markNotificationAsRead,
     markAllNotificationsAsRead,
     deleteNotification,
+    refreshBookings,
   };
 
   return (
