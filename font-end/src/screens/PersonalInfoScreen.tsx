@@ -227,9 +227,9 @@ const PersonalInfoScreen = () => {
             onPress={() => setIsEditing(!isEditing)}
           >
             <Ionicons 
-              name={isEditing ? "close" : "create-outline"} 
+              name={isEditing ? "close" : "create"} 
               size={20} 
-              color={COLORS.text} 
+              color="#0077B6" 
             />
           </TouchableOpacity>
         </View>
@@ -258,7 +258,7 @@ const PersonalInfoScreen = () => {
             <View style={styles.infoItem}>
               <View style={styles.infoItemLeft}>
                 <View style={styles.infoIcon}>
-                  <Ionicons name="person-outline" size={20} color={COLORS.text} />
+                  <Ionicons name="person" size={20} color="#0077B6" />
                 </View>
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Họ và tên</Text>
@@ -285,7 +285,7 @@ const PersonalInfoScreen = () => {
             <View style={styles.infoItem}>
               <View style={styles.infoItemLeft}>
                 <View style={styles.infoIcon}>
-                  <Ionicons name="mail-outline" size={20} color={COLORS.black} />
+                  <Ionicons name="mail" size={20} color="#0077B6" />
                 </View>
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Email</Text>
@@ -311,7 +311,7 @@ const PersonalInfoScreen = () => {
             <View style={styles.infoItem}>
               <View style={styles.infoItemLeft}>
                 <View style={styles.infoIcon}>
-                  <Ionicons name="call-outline" size={20} color={COLORS.black} />
+                  <Ionicons name="call" size={20} color="#0077B6" />
                 </View>
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Số điện thoại</Text>
@@ -337,7 +337,7 @@ const PersonalInfoScreen = () => {
             <View style={styles.infoItem}>
               <View style={styles.infoItemLeft}>
                 <View style={styles.infoIcon}>
-                  <Ionicons name="calendar-outline" size={20} color={COLORS.black} />
+                  <Ionicons name="calendar" size={20} color="#0077B6" />
                 </View>
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Ngày sinh</Text>
@@ -365,7 +365,7 @@ const PersonalInfoScreen = () => {
             <View style={styles.infoItem}>
               <View style={styles.infoItemLeft}>
                 <View style={styles.infoIcon}>
-                  <Ionicons name="male-female-outline" size={20} color={COLORS.black} />
+                  <Ionicons name="male-female" size={20} color="#0077B6" />
                 </View>
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Giới tính</Text>
@@ -421,7 +421,7 @@ const PersonalInfoScreen = () => {
             <View style={styles.infoItem}>
               <View style={styles.infoItemLeft}>
                 <View style={styles.infoIcon}>
-                  <Ionicons name="location-outline" size={20} color={COLORS.black} />
+                  <Ionicons name="location" size={20} color="#0077B6" />
                 </View>
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Địa chỉ</Text>
@@ -493,7 +493,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -506,7 +505,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -605,8 +603,6 @@ const styles = StyleSheet.create({
   infoIcon: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SIZES.sm,

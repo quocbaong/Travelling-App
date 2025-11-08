@@ -40,13 +40,13 @@ const PaymentMethodsScreen = () => {
       id: 'creditCard',
       title: 'Thẻ tín dụng',
       subtitle: 'Visa, Mastercard, American Express',
-      icon: 'card-outline',
+      icon: 'card',
     },
     {
       id: 'debitCard',
       title: 'Thẻ ghi nợ',
       subtitle: 'Thẻ ATM, thẻ ghi nợ',
-      icon: 'card-outline',
+      icon: 'card',
     },
     {
       id: 'paypal',
@@ -70,7 +70,7 @@ const PaymentMethodsScreen = () => {
       id: 'bankTransfer',
       title: 'Chuyển khoản ngân hàng',
       subtitle: 'Chuyển khoản trực tiếp',
-      icon: 'business-outline',
+      icon: 'business',
     },
   ];
 
@@ -87,7 +87,7 @@ const PaymentMethodsScreen = () => {
           </TouchableOpacity>
           <Text style={styles.title}>Phương thức thanh toán</Text>
           <TouchableOpacity style={styles.addButton}>
-            <Ionicons name="add" size={20} color={COLORS.black} />
+            <Ionicons name="add" size={20} color="#0077B6" />
           </TouchableOpacity>
         </View>
 
@@ -101,7 +101,7 @@ const PaymentMethodsScreen = () => {
                 <View style={styles.paymentItem}>
                   <View style={styles.paymentItemLeft}>
                     <View style={styles.paymentIcon}>
-                      <Ionicons name={item.icon as any} size={20} color={COLORS.black} />
+                      <Ionicons name={item.icon as any} size={20} color="#0077B6" />
                     </View>
                     <View style={styles.paymentInfo}>
                       <Text style={styles.paymentTitle}>{item.title}</Text>
@@ -129,7 +129,7 @@ const PaymentMethodsScreen = () => {
             <View style={styles.securityItem}>
               <View style={styles.securityItemLeft}>
                 <View style={styles.securityIcon}>
-                  <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.black} />
+                  <Ionicons name="shield-checkmark" size={20} color="#0077B6" />
                 </View>
                 <View style={styles.securityInfo}>
                   <Text style={styles.securityTitle}>Bảo mật cao</Text>
@@ -145,7 +145,7 @@ const PaymentMethodsScreen = () => {
             <View style={styles.securityItem}>
               <View style={styles.securityItemLeft}>
                 <View style={styles.securityIcon}>
-                  <Ionicons name="lock-closed-outline" size={20} color={COLORS.black} />
+                  <Ionicons name="lock-closed" size={20} color="#0077B6" />
                 </View>
                 <View style={styles.securityInfo}>
                   <Text style={styles.securityTitle}>Mã hóa SSL 256-bit</Text>
@@ -161,7 +161,7 @@ const PaymentMethodsScreen = () => {
             <View style={styles.securityItem}>
               <View style={styles.securityItemLeft}>
                 <View style={styles.securityIcon}>
-                  <Ionicons name="checkmark-circle-outline" size={20} color={COLORS.black} />
+                  <Ionicons name="checkmark-circle" size={20} color="#0077B6" />
                 </View>
                 <View style={styles.securityInfo}>
                   <Text style={styles.securityTitle}>PCI DSS Compliant</Text>
@@ -198,7 +198,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -211,7 +210,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -246,8 +244,6 @@ const styles = StyleSheet.create({
   paymentIcon: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SIZES.sm,
@@ -288,8 +284,6 @@ const styles = StyleSheet.create({
   securityIcon: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SIZES.sm,
