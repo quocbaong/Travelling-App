@@ -101,10 +101,7 @@ const LanguageScreen = () => {
               >
                 {isSelected && <View style={styles.selectedBackground} />}
                 <View style={styles.languageContent}>
-                  <View style={[
-                    styles.flagContainer,
-                    isSelected && styles.flagContainerSelected,
-                  ]}>
+                  <View style={styles.flagContainer}>
                     <Text style={styles.flag}>{language.flag}</Text>
                   </View>
                   <View style={styles.languageInfo}>
@@ -224,13 +221,9 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SIZES.md,
-  },
-  flagContainerSelected: {
-    backgroundColor: COLORS.primaryLight,
   },
   flag: {
     fontSize: 32,

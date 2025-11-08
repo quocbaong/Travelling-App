@@ -43,6 +43,20 @@ const PaymentMethodsScreen = () => {
   const [selectedMethod, setSelectedMethod] = useState<string>('1');
   const [isProcessing, setIsProcessing] = useState(false);
 
+
+  const paymentOptions = [
+    {
+      id: 'creditCard',
+      title: 'Thẻ tín dụng',
+      subtitle: 'Visa, Mastercard, American Express',
+      icon: 'card',
+    },
+    {
+      id: 'debitCard',
+      title: 'Thẻ ghi nợ',
+      subtitle: 'Thẻ ATM, thẻ ghi nợ',
+      icon: 'card',
+    },
   const paymentMethods: PaymentMethod[] = [
     {
       id: '1',
@@ -63,6 +77,78 @@ const PaymentMethodsScreen = () => {
       iconType: 'ionicon',
     },
     {
+      id: 'bankTransfer',
+      title: 'Chuyển khoản ngân hàng',
+      subtitle: 'Chuyển khoản trực tiếp',
+      icon: 'business',
+    },
+  ];
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+          </TouchableOpacity>
+          <Text style={styles.title}>Phương thức thanh toán</Text>
+          <TouchableOpacity style={styles.addButton}>
+            <Ionicons name="add" size={20} color="#0077B6" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Payment Methods Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Phương thức thanh toán</Text>
+          
+          <View style={styles.paymentCard}>
+            {paymentOptions.map((item, index) => (
+              <View key={item.id}>
+                <View style={styles.paymentItem}>
+                  <View style={styles.paymentItemLeft}>
+                    <View style={styles.paymentIcon}>
+                      <Ionicons name={item.icon as any} size={20} color="#0077B6" />
+                    </View>
+                    <View style={styles.paymentInfo}>
+                      <Text style={styles.paymentTitle}>{item.title}</Text>
+                      <Text style={styles.paymentSubtitle}>{item.subtitle}</Text>
+                    </View>
+                  </View>
+                  <Switch
+                    value={paymentMethods[item.id as keyof typeof paymentMethods]}
+                    onValueChange={() => handleToggle(item.id as keyof typeof paymentMethods)}
+                    trackColor={{ false: COLORS.lightGray, true: COLORS.primaryLight }}
+                    thumbColor={paymentMethods[item.id as keyof typeof paymentMethods] ? COLORS.primary : COLORS.gray}
+                  />
+                </View>
+                {index < paymentOptions.length - 1 && <View style={styles.divider} />}
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Security Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Bảo mật</Text>
+          
+          <View style={styles.securityCard}>
+            <View style={styles.securityItem}>
+              <View style={styles.securityItemLeft}>
+                <View style={styles.securityIcon}>
+                  <Ionicons name="shield-checkmark" size={20} color="#0077B6" />
+                </View>
+                <View style={styles.securityInfo}>
+                  <Text style={styles.securityTitle}>Bảo mật cao</Text>
+                  <Text style={styles.securityDescription}>
+                    Tất cả giao dịch được mã hóa và bảo vệ bởi công nghệ bảo mật tiên tiến
+                  </Text>
+                </View>
+              </View>
+            </View>
       id: '4',
       name: 'Thanh toán khi nhận dịch vụ',
       icon: 'cash',
@@ -144,7 +230,19 @@ const PaymentMethodsScreen = () => {
       setIsProcessing(false);
     }
   };
-
+            <View style={styles.securityItem}>
+              <View style={styles.securityItemLeft}>
+                <View style={styles.securityIcon}>
+                  <Ionicons name="lock-closed" size={20} color="#0077B6" />
+                </View>
+                <View style={styles.securityInfo}>
+                  <Text style={styles.securityTitle}>Mã hóa SSL 256-bit</Text>
+                  <Text style={styles.securityDescription}>
+                    Thông tin được bảo vệ bằng mã hóa tiên tiến
+                  </Text>
+                </View>
+              </View>
+            </View>
   const renderPaymentMethodIcon = (method: PaymentMethod) => {
     if (method.iconType === 'image' && method.imageUrl) {
       return <Image source={{ uri: method.imageUrl }} style={styles.paymentMethodImage} />;
@@ -191,6 +289,16 @@ const PaymentMethodsScreen = () => {
         <View style={styles.headerSpacer} />
       </View>
 
+            <View style={styles.securityItem}>
+              <View style={styles.securityItemLeft}>
+                <View style={styles.securityIcon}>
+                  <Ionicons name="checkmark-circle" size={20} color="#0077B6" />
+                </View>
+                <View style={styles.securityInfo}>
+                  <Text style={styles.securityTitle}>PCI DSS Compliant</Text>
+                  <Text style={styles.securityDescription}>
+                    Tuân thủ các tiêu chuẩn bảo mật quốc tế
+                  </Text>
       <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollView}>
         <View style={styles.content}>
           {/* Payment Methods List */}
@@ -273,6 +381,7 @@ const styles = StyleSheet.create({
   backButton: {
     width: 40,
     height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 20,
@@ -295,6 +404,10 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollView: {
     flex: 1,
@@ -323,6 +436,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
+  paymentIcon: {
+    width: 36,
+    height: 36,
   paymentMethodIconContainer: {
     marginRight: SIZES.md,
     width: 40,
@@ -384,6 +500,9 @@ const styles = StyleSheet.create({
     fontSize: SIZES.h4+2,
     color: COLORS.primary,
   },
+  securityIcon: {
+    width: 36,
+    height: 36,
   processPaymentButton: {
     backgroundColor: COLORS.primary,
     paddingHorizontal: SIZES.xl,
