@@ -25,25 +25,25 @@ const AboutUsScreen = () => {
       id: 'founded',
       title: 'Thành lập',
       value: '2020',
-      icon: 'calendar-outline',
+      icon: 'calendar',
     },
     {
       id: 'employees',
       title: 'Nhân viên',
       value: '50+',
-      icon: 'people-outline',
+      icon: 'people',
     },
     {
       id: 'users',
       title: 'Người dùng',
       value: '100K+',
-      icon: 'person-outline',
+      icon: 'person',
     },
     {
       id: 'tours',
       title: 'Tour đã tổ chức',
       value: '10K+',
-      icon: 'airplane-outline',
+      icon: 'airplane',
     },
   ];
 
@@ -52,19 +52,19 @@ const AboutUsScreen = () => {
       id: 'quality',
       title: 'Chất lượng',
       description: 'Cam kết mang đến những trải nghiệm du lịch tốt nhất',
-      icon: 'star-outline',
+      icon: 'star',
     },
     {
       id: 'innovation',
       title: 'Đổi mới',
       description: 'Luôn cập nhật công nghệ và dịch vụ mới nhất',
-      icon: 'bulb-outline',
+      icon: 'bulb',
     },
     {
       id: 'trust',
       title: 'Tin cậy',
       description: 'Xây dựng mối quan hệ dài hạn với khách hàng',
-      icon: 'heart-outline',
+      icon: 'heart',
     },
   ];
 
@@ -132,7 +132,7 @@ const AboutUsScreen = () => {
                 <View style={styles.infoItem}>
                   <View style={styles.infoItemLeft}>
                     <View style={styles.infoIcon}>
-                      <Ionicons name={info.icon as any} size={20} color={COLORS.black} />
+                      <Ionicons name={info.icon as any} size={20} color="#0077B6" />
                     </View>
                     <View style={styles.infoInfo}>
                       <Text style={styles.infoTitle}>{info.title}</Text>
@@ -155,7 +155,7 @@ const AboutUsScreen = () => {
               <View style={styles.valueItem}>
                 <View style={styles.valueItemLeft}>
                   <View style={styles.valueIcon}>
-                    <Ionicons name={value.icon as any} size={20} color={COLORS.black} />
+                    <Ionicons name={value.icon as any} size={20} color="#0077B6" />
                   </View>
                   <View style={styles.valueInfo}>
                     <Text style={styles.valueTitle}>{value.title}</Text>
@@ -199,7 +199,7 @@ const AboutUsScreen = () => {
             <View style={styles.contactItem}>
               <View style={styles.contactItemLeft}>
                 <View style={styles.contactIcon}>
-                  <Ionicons name="location-outline" size={20} color={COLORS.black} />
+                  <Ionicons name="location" size={20} color="#0077B6" />
                 </View>
                 <View style={styles.contactInfo}>
                   <Text style={styles.contactTitle}>Địa chỉ</Text>
@@ -213,7 +213,7 @@ const AboutUsScreen = () => {
             <View style={styles.contactItem}>
               <View style={styles.contactItemLeft}>
                 <View style={styles.contactIcon}>
-                  <Ionicons name="call-outline" size={20} color={COLORS.black} />
+                  <Ionicons name="call" size={20} color="#0077B6" />
                 </View>
                 <View style={styles.contactInfo}>
                   <Text style={styles.contactTitle}>Điện thoại</Text>
@@ -227,7 +227,7 @@ const AboutUsScreen = () => {
             <View style={styles.contactItem}>
               <View style={styles.contactItemLeft}>
                 <View style={styles.contactIcon}>
-                  <Ionicons name="mail-outline" size={20} color={COLORS.black} />
+                  <Ionicons name="mail" size={20} color="#0077B6" />
                 </View>
                 <View style={styles.contactInfo}>
                   <Text style={styles.contactTitle}>Email</Text>
@@ -241,7 +241,7 @@ const AboutUsScreen = () => {
             <View style={styles.contactItem}>
               <View style={styles.contactItemLeft}>
                 <View style={styles.contactIcon}>
-                  <Ionicons name="globe-outline" size={20} color={COLORS.black} />
+                  <Ionicons name="globe" size={20} color="#0077B6" />
                 </View>
                 <View style={styles.contactInfo}>
                   <Text style={styles.contactTitle}>Website</Text>
@@ -276,7 +276,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -354,8 +353,6 @@ const styles = StyleSheet.create({
   infoIcon: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SIZES.sm,
@@ -396,8 +393,6 @@ const styles = StyleSheet.create({
   valueIcon: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SIZES.sm,
@@ -475,8 +470,6 @@ const styles = StyleSheet.create({
   contactIcon: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SIZES.sm,
