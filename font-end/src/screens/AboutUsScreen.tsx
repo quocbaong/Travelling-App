@@ -109,7 +109,7 @@ const AboutUsScreen = () => {
           <View style={styles.missionCard}>
             <View style={styles.logoContainer}>
               <View style={styles.logo}>
-                <Ionicons name="airplane" size={40} color={COLORS.black} />
+                <Ionicons name="airplane" size={40} color={COLORS.text} />
               </View>
               <Text style={styles.companyName}>TravelApp</Text>
             </View>
