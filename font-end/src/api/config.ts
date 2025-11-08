@@ -108,6 +108,10 @@ export class HttpClient {
       const response = await fetch(url, config);
       
       if (!response.ok) {
+        // Nếu là 404, không cần parse JSON, chỉ throw error với message
+        if (response.status === 404) {
+          throw new Error(`No static resource ${endpoint}.`);
+        }
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
@@ -129,8 +133,13 @@ export class HttpClient {
       }
       
       return data;
-    } catch (error) {
-      console.error('API Request failed:', error);
+    } catch (error: any) {
+      // Không log lỗi nếu endpoint chưa được implement (404 hoặc "No static resource")
+      // Để tránh làm phiền người dùng khi backend chưa có endpoint
+      const errorMessage = error?.message || '';
+      if (!errorMessage.includes('No static resource') && !errorMessage.includes('404')) {
+        console.error('API Request failed:', error);
+      }
       throw error;
     }
   }
