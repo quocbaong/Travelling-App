@@ -336,11 +336,6 @@ const ProfileScreen = () => {
           </View>
         )}
 
-        {/* App Version */}
-        <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>Phiên bản 1.0.0</Text>
-        </View>
-
         <View style={{ height: 20 }} />
       </ScrollView>
     </SafeAreaView>
@@ -531,15 +526,6 @@ const styles = StyleSheet.create({
     ...FONTS.bold,
     fontSize: SIZES.body1,
     color: COLORS.white,
-  },
-  versionContainer: {
-    alignItems: 'center',
-    paddingVertical: SIZES.md,
-  },
-  versionText: {
-    ...FONTS.regular,
-    fontSize: SIZES.body3,
-    color: COLORS.textLight,
   },
 });
 

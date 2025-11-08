@@ -442,15 +442,16 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: SIZES.lg,
+    paddingTop: SIZES.md,
   },
   section: {
-    marginTop: SIZES.lg,
+    marginBottom: SIZES.md,
   },
   sectionTitle: {
     ...FONTS.bold,
     fontSize: SIZES.h5,
     color: COLORS.text,
-    marginBottom: SIZES.md,
+    marginBottom: SIZES.sm,
   },
   optionsContainer: {
     flexDirection: 'row',
@@ -485,7 +486,6 @@ const styles = StyleSheet.create({
   },
   priceSliderContainer: {
     paddingHorizontal: SIZES.md,
-    paddingVertical: SIZES.sm,
   },
   sliderContainer: {
     height: 30,
@@ -556,7 +556,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: SIZES.md,
     paddingVertical: SIZES.sm,
     backgroundColor: COLORS.white,
-    marginTop: SIZES.xxs,
   },
   countrySelectText: {
     ...FONTS.regular,
