@@ -67,25 +67,25 @@ const PrivacyPolicyScreen = () => {
       id: 'personal',
       title: 'Thông tin cá nhân',
       description: 'Tên, email, số điện thoại, địa chỉ',
-      icon: 'person-outline',
+      icon: 'person',
     },
     {
       id: 'payment',
       title: 'Thông tin thanh toán',
       description: 'Thông tin thẻ, tài khoản ngân hàng',
-      icon: 'card-outline',
+      icon: 'card',
     },
     {
       id: 'usage',
       title: 'Dữ liệu sử dụng',
       description: 'Lịch sử đặt tour, tìm kiếm, đánh giá',
-      icon: 'analytics-outline',
+      icon: 'analytics',
     },
     {
       id: 'device',
       title: 'Thông tin thiết bị',
       description: 'Loại thiết bị, hệ điều hành, địa chỉ IP',
-      icon: 'phone-portrait-outline',
+      icon: 'phone-portrait',
     },
   ];
 
@@ -110,7 +110,7 @@ const PrivacyPolicyScreen = () => {
             <View style={styles.infoItem}>
               <View style={styles.infoItemLeft}>
                 <View style={styles.infoIcon}>
-                  <Ionicons name="calendar-outline" size={20} color={COLORS.black} />
+                  <Ionicons name="calendar" size={20} color="#0077B6" />
                 </View>
                 <View style={styles.infoInfo}>
                   <Text style={styles.infoTitle}>Có hiệu lực từ</Text>
@@ -124,7 +124,7 @@ const PrivacyPolicyScreen = () => {
             <View style={styles.infoItem}>
               <View style={styles.infoItemLeft}>
                 <View style={styles.infoIcon}>
-                  <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.black} />
+                  <Ionicons name="shield-checkmark" size={20} color="#0077B6" />
                 </View>
                 <View style={styles.infoInfo}>
                   <Text style={styles.infoTitle}>Tuân thủ</Text>
@@ -138,7 +138,7 @@ const PrivacyPolicyScreen = () => {
             <View style={styles.infoItem}>
               <View style={styles.infoItemLeft}>
                 <View style={styles.infoIcon}>
-                  <Ionicons name="lock-closed-outline" size={20} color={COLORS.black} />
+                  <Ionicons name="lock-closed" size={20} color="#0077B6" />
                 </View>
                 <View style={styles.infoInfo}>
                   <Text style={styles.infoTitle}>Mã hóa</Text>
@@ -159,7 +159,7 @@ const PrivacyPolicyScreen = () => {
                 <View style={styles.dataItem}>
                   <View style={styles.dataItemLeft}>
                     <View style={styles.dataIcon}>
-                      <Ionicons name={data.icon as any} size={20} color={COLORS.black} />
+                      <Ionicons name={data.icon as any} size={20} color="#0077B6" />
                     </View>
                     <View style={styles.dataInfo}>
                       <Text style={styles.dataTitle}>{data.title}</Text>
@@ -193,7 +193,7 @@ const PrivacyPolicyScreen = () => {
             <View style={styles.contactItem}>
               <View style={styles.contactItemLeft}>
                 <View style={styles.contactIcon}>
-                  <Ionicons name="mail-outline" size={20} color={COLORS.black} />
+                  <Ionicons name="mail" size={20} color="#0077B6" />
                 </View>
                 <View style={styles.contactInfo}>
                   <Text style={styles.contactTitle}>Email bảo mật</Text>
@@ -207,7 +207,7 @@ const PrivacyPolicyScreen = () => {
             <View style={styles.contactItem}>
               <View style={styles.contactItemLeft}>
                 <View style={styles.contactIcon}>
-                  <Ionicons name="shield-outline" size={20} color={COLORS.black} />
+                  <Ionicons name="shield" size={20} color="#0077B6" />
                 </View>
                 <View style={styles.contactInfo}>
                   <Text style={styles.contactTitle}>DPO (Data Protection Officer)</Text>
@@ -221,7 +221,7 @@ const PrivacyPolicyScreen = () => {
             <View style={styles.contactItem}>
               <View style={styles.contactItemLeft}>
                 <View style={styles.contactIcon}>
-                  <Ionicons name="time-outline" size={20} color={COLORS.black} />
+                  <Ionicons name="time" size={20} color="#0077B6" />
                 </View>
                 <View style={styles.contactInfo}>
                   <Text style={styles.contactTitle}>Thời gian phản hồi</Text>
@@ -256,7 +256,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -295,8 +294,6 @@ const styles = StyleSheet.create({
   infoIcon: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SIZES.sm,
@@ -337,8 +334,6 @@ const styles = StyleSheet.create({
   dataIcon: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SIZES.sm,
@@ -393,8 +388,6 @@ const styles = StyleSheet.create({
   contactIcon: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SIZES.sm,
