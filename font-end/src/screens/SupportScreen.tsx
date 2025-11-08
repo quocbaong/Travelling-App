@@ -24,49 +24,49 @@ const SupportScreen = () => {
       id: 'helpCenter',
       title: 'Trung tâm trợ giúp',
       subtitle: 'Câu hỏi thường gặp và hướng dẫn',
-      icon: 'help-circle-outline',
+      icon: 'help-circle',
       onPress: () => navigation.push('Support'),
     },
     {
       id: 'contact',
       title: 'Liên hệ hỗ trợ',
       subtitle: 'Gửi yêu cầu hỗ trợ cho chúng tôi',
-      icon: 'mail-outline',
+      icon: 'mail',
       onPress: () => navigation.push('Support'),
     },
     {
       id: 'chat',
       title: 'Chat trực tuyến',
       subtitle: 'Trò chuyện với nhân viên hỗ trợ',
-      icon: 'chatbubble-outline',
+      icon: 'chatbubble',
       onPress: () => navigation.push('Support'),
     },
     {
       id: 'report',
       title: 'Báo cáo sự cố',
       subtitle: 'Báo cáo lỗi hoặc vấn đề kỹ thuật',
-      icon: 'bug-outline',
+      icon: 'bug',
       onPress: () => navigation.push('Support'),
     },
     {
       id: 'terms',
       title: 'Điều khoản dịch vụ',
       subtitle: 'Điều khoản và điều kiện sử dụng',
-      icon: 'document-text-outline',
+      icon: 'document-text',
       onPress: () => navigation.push('TermsOfService'),
     },
     {
       id: 'privacy',
       title: 'Chính sách bảo mật',
       subtitle: 'Cách chúng tôi bảo vệ thông tin của bạn',
-      icon: 'lock-closed-outline',
+      icon: 'lock-closed',
       onPress: () => navigation.push('PrivacyPolicy'),
     },
     {
       id: 'about',
       title: 'Về chúng tôi',
       subtitle: 'Thông tin về công ty và ứng dụng',
-      icon: 'information-circle-outline',
+      icon: 'information-circle',
       onPress: () => navigation.push('AboutUs'),
     },
   ];
@@ -77,19 +77,19 @@ const SupportScreen = () => {
       id: 'email',
       title: 'Email',
       value: 'support@travelapp.com',
-      icon: 'mail-outline',
+      icon: 'mail',
     },
     {
       id: 'phone',
       title: 'Điện thoại',
       value: '+84 123 456 789',
-      icon: 'call-outline',
+      icon: 'call',
     },
     {
       id: 'website',
       title: 'Website',
       value: 'www.travelapp.com',
-      icon: 'globe-outline',
+      icon: 'globe',
     },
   ];
 
@@ -118,7 +118,7 @@ const SupportScreen = () => {
                 <TouchableOpacity style={styles.supportItem} onPress={item.onPress}>
                   <View style={styles.supportItemLeft}>
                     <View style={styles.supportIcon}>
-                      <Ionicons name={item.icon as any} size={20} color={COLORS.black} />
+                      <Ionicons name={item.icon as any} size={20} color="#0077B6" />
                     </View>
                     <View style={styles.supportInfo}>
                       <Text style={styles.supportTitle}>{item.title}</Text>
@@ -144,7 +144,7 @@ const SupportScreen = () => {
                 <View style={styles.contactItem}>
                   <View style={styles.contactItemLeft}>
                     <View style={styles.contactIcon}>
-                      <Ionicons name={item.icon as any} size={20} color={COLORS.black} />
+                      <Ionicons name={item.icon as any} size={20} color="#0077B6" />
                     </View>
                     <View style={styles.contactInfo}>
                       <Text style={styles.contactTitle}>{item.title}</Text>
@@ -166,21 +166,7 @@ const SupportScreen = () => {
             <View style={styles.appInfoItem}>
               <View style={styles.appInfoItemLeft}>
                 <View style={styles.appInfoIcon}>
-                  <Ionicons name="phone-portrait-outline" size={20} color={COLORS.black} />
-                </View>
-                <View style={styles.appInfoInfo}>
-                  <Text style={styles.appInfoTitle}>Phiên bản</Text>
-                  <Text style={styles.appInfoValue}>1.0.0</Text>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.divider} />
-
-            <View style={styles.appInfoItem}>
-              <View style={styles.appInfoItemLeft}>
-                <View style={styles.appInfoIcon}>
-                  <Ionicons name="calendar-outline" size={20} color={COLORS.black} />
+                  <Ionicons name="calendar" size={20} color="#0077B6" />
                 </View>
                 <View style={styles.appInfoInfo}>
                   <Text style={styles.appInfoTitle}>Ngày cập nhật</Text>
@@ -194,7 +180,7 @@ const SupportScreen = () => {
             <View style={styles.appInfoItem}>
               <View style={styles.appInfoItemLeft}>
                 <View style={styles.appInfoIcon}>
-                  <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.black} />
+                  <Ionicons name="shield-checkmark" size={20} color="#0077B6" />
                 </View>
                 <View style={styles.appInfoInfo}>
                   <Text style={styles.appInfoTitle}>Bảo mật</Text>
@@ -229,7 +215,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -272,8 +257,6 @@ const styles = StyleSheet.create({
   supportIcon: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SIZES.sm,
@@ -314,8 +297,6 @@ const styles = StyleSheet.create({
   contactIcon: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SIZES.sm,
@@ -351,8 +332,6 @@ const styles = StyleSheet.create({
   appInfoIcon: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SIZES.sm,
