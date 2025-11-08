@@ -100,6 +100,7 @@ export interface RootStackParamList {
   PaymentResult: { success: boolean; message?: string; transactionId?: string; bookingId?: string; orderId: string; destination?: Destination; services?: string[]; departureDate?: string; returnDate?: string; participants?: number; totalPrice?: number; paymentMethod?: string };
   OrderDetails: { orderData?: any } | { destination?: Destination; services?: string[]; departureDate?: string; returnDate?: string; participants?: number; totalPrice?: number };
   PaymentMethods: { destination?: Destination; services?: string[]; departureDate?: string; returnDate?: string; participants?: number; totalPrice?: number; orderId?: string };
+  PaymentMethodsProfile: undefined;
   ServicePackageDetail: { servicePackage: any };
   PersonalInfo: undefined;
   Security: undefined;

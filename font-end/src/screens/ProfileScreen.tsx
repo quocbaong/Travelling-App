@@ -55,7 +55,7 @@ const ProfileScreen = () => {
       id: 'payment',
       title: 'Phương thức thanh toán',
       icon: 'card',
-      onPress: () => handleNavigateWithAuth('PaymentMethods', 'Profile'),
+      onPress: () => handleNavigateWithAuth('PaymentMethodsProfile', 'Profile'),
       requireAuth: true,
     },
     {
