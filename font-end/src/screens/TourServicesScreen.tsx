@@ -168,13 +168,20 @@ const TourServicesScreen = () => {
       return;
     }
     
-    (navigation as any).navigate('Payment', { 
+    // Generate order ID
+    const orderId = `ORD-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+    
+    (navigation as any).navigate('OrderDetails', { 
       destination, 
       services: selectedServices,
       departureDate,
       returnDate,
       participants,
-      totalPrice
+      totalPrice,
+      orderId,
+      bookingDate: new Date().toLocaleDateString('vi-VN'),
+      paymentMethod: 'Chưa thanh toán',
+      status: 'pending'
     });
   };
 

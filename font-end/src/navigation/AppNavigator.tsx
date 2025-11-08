@@ -25,7 +25,9 @@ import ReviewsScreen from '../screens/ReviewsScreen';
 import TourServicesScreen from '../screens/TourServicesScreen';
 import PaymentScreen from '../screens/PaymentScreen';
 import PaymentSuccessScreen from '../screens/PaymentSuccessScreen';
+import PaymentResultScreen from '../screens/PaymentResultScreen';
 import PaymentMethodsScreen from '../screens/PaymentMethodsScreen';
+import OrderDetailsScreen from '../screens/OrderDetailsScreen';
 import SecurityScreen from '../screens/SecurityScreen';
 import SupportScreen from '../screens/SupportScreen';
 import DarkModeScreen from '../screens/DarkModeScreen';
@@ -168,6 +170,14 @@ export const AppNavigator = () => {
         <Stack.Screen 
           name="PaymentSuccess" 
           component={PaymentSuccessScreen}
+        />
+        <Stack.Screen 
+          name="PaymentResult" 
+          component={PaymentResultScreen}
+        />
+        <Stack.Screen 
+          name="OrderDetails" 
+          component={OrderDetailsScreen}
         />
         <Stack.Screen 
           name="PersonalInfo" 

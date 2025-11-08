@@ -61,6 +61,11 @@ export const API_CONFIG = {
     
     // Notifications
     NOTIFICATIONS: '/notifications',
+    
+    // Payment Methods
+    PAYMENT_METHODS: '/payment-methods',
+    PAYMENT_METHODS_USER: '/payment-methods/user',
+    PROCESS_PAYMENT: '/payments/process',
   },
   TIMEOUT: 10000, // 10 seconds
 };
