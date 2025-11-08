@@ -308,7 +308,7 @@ const ExploreScreen = () => {
         >
           {filteredDestinations.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name="search-outline" size={64} color={COLORS.gray} />
+              <Ionicons name="search-outline" size={64} color={COLORS.black} />
               <Text style={styles.emptyTitle}>Không tìm thấy kết quả</Text>
               <Text style={styles.emptyText}>
                 Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc
@@ -402,6 +402,7 @@ const styles = StyleSheet.create({
     ...FONTS.bold,
     fontSize: SIZES.h3,
     color: COLORS.text,
+    textAlign: 'center',
   },
   subtitle: {
     ...FONTS.regular,
@@ -534,7 +535,7 @@ const styles = StyleSheet.create({
   emptyText: {
     ...FONTS.regular,
     fontSize: SIZES.body2,
-    color: COLORS.gray,
+    color: COLORS.text,
     textAlign: 'center',
     lineHeight: 22,
     marginTop: SIZES.sm,

@@ -110,7 +110,7 @@ const PrivacyPolicyScreen = () => {
             <View style={styles.infoItem}>
               <View style={styles.infoItemLeft}>
                 <View style={styles.infoIcon}>
-                  <Ionicons name="calendar-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="calendar-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.infoInfo}>
                   <Text style={styles.infoTitle}>Có hiệu lực từ</Text>
@@ -124,7 +124,7 @@ const PrivacyPolicyScreen = () => {
             <View style={styles.infoItem}>
               <View style={styles.infoItemLeft}>
                 <View style={styles.infoIcon}>
-                  <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.infoInfo}>
                   <Text style={styles.infoTitle}>Tuân thủ</Text>
@@ -138,7 +138,7 @@ const PrivacyPolicyScreen = () => {
             <View style={styles.infoItem}>
               <View style={styles.infoItemLeft}>
                 <View style={styles.infoIcon}>
-                  <Ionicons name="lock-closed-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="lock-closed-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.infoInfo}>
                   <Text style={styles.infoTitle}>Mã hóa</Text>
@@ -159,7 +159,7 @@ const PrivacyPolicyScreen = () => {
                 <View style={styles.dataItem}>
                   <View style={styles.dataItemLeft}>
                     <View style={styles.dataIcon}>
-                      <Ionicons name={data.icon as any} size={20} color={COLORS.primary} />
+                      <Ionicons name={data.icon as any} size={20} color={COLORS.black} />
                     </View>
                     <View style={styles.dataInfo}>
                       <Text style={styles.dataTitle}>{data.title}</Text>
@@ -193,7 +193,7 @@ const PrivacyPolicyScreen = () => {
             <View style={styles.contactItem}>
               <View style={styles.contactItemLeft}>
                 <View style={styles.contactIcon}>
-                  <Ionicons name="mail-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="mail-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.contactInfo}>
                   <Text style={styles.contactTitle}>Email bảo mật</Text>
@@ -207,7 +207,7 @@ const PrivacyPolicyScreen = () => {
             <View style={styles.contactItem}>
               <View style={styles.contactItemLeft}>
                 <View style={styles.contactIcon}>
-                  <Ionicons name="shield-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="shield-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.contactInfo}>
                   <Text style={styles.contactTitle}>DPO (Data Protection Officer)</Text>
@@ -221,7 +221,7 @@ const PrivacyPolicyScreen = () => {
             <View style={styles.contactItem}>
               <View style={styles.contactItemLeft}>
                 <View style={styles.contactIcon}>
-                  <Ionicons name="time-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="time-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.contactInfo}>
                   <Text style={styles.contactTitle}>Thời gian phản hồi</Text>
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
   infoTitle: {
     ...FONTS.semiBold,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
     marginBottom: 2,
   },
   infoValue: {
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
   dataDescription: {
     ...FONTS.regular,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
   },
   policyCard: {
     backgroundColor: COLORS.white,
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
   policyContent: {
     ...FONTS.regular,
     fontSize: SIZES.body1,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
     lineHeight: 22,
   },
   contactCard: {
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
   contactTitle: {
     ...FONTS.semiBold,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
     marginBottom: 2,
   },
   contactValue: {

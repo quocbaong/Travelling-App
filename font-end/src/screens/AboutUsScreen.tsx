@@ -109,7 +109,7 @@ const AboutUsScreen = () => {
           <View style={styles.missionCard}>
             <View style={styles.logoContainer}>
               <View style={styles.logo}>
-                <Ionicons name="airplane" size={40} color={COLORS.primary} />
+                <Ionicons name="airplane" size={40} color={COLORS.text} />
               </View>
               <Text style={styles.companyName}>TravelApp</Text>
             </View>
@@ -132,7 +132,7 @@ const AboutUsScreen = () => {
                 <View style={styles.infoItem}>
                   <View style={styles.infoItemLeft}>
                     <View style={styles.infoIcon}>
-                      <Ionicons name={info.icon as any} size={20} color={COLORS.primary} />
+                      <Ionicons name={info.icon as any} size={20} color={COLORS.black} />
                     </View>
                     <View style={styles.infoInfo}>
                       <Text style={styles.infoTitle}>{info.title}</Text>
@@ -155,7 +155,7 @@ const AboutUsScreen = () => {
               <View style={styles.valueItem}>
                 <View style={styles.valueItemLeft}>
                   <View style={styles.valueIcon}>
-                    <Ionicons name={value.icon as any} size={20} color={COLORS.primary} />
+                    <Ionicons name={value.icon as any} size={20} color={COLORS.black} />
                   </View>
                   <View style={styles.valueInfo}>
                     <Text style={styles.valueTitle}>{value.title}</Text>
@@ -199,7 +199,7 @@ const AboutUsScreen = () => {
             <View style={styles.contactItem}>
               <View style={styles.contactItemLeft}>
                 <View style={styles.contactIcon}>
-                  <Ionicons name="location-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="location-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.contactInfo}>
                   <Text style={styles.contactTitle}>Địa chỉ</Text>
@@ -213,7 +213,7 @@ const AboutUsScreen = () => {
             <View style={styles.contactItem}>
               <View style={styles.contactItemLeft}>
                 <View style={styles.contactIcon}>
-                  <Ionicons name="call-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="call-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.contactInfo}>
                   <Text style={styles.contactTitle}>Điện thoại</Text>
@@ -227,7 +227,7 @@ const AboutUsScreen = () => {
             <View style={styles.contactItem}>
               <View style={styles.contactItemLeft}>
                 <View style={styles.contactIcon}>
-                  <Ionicons name="mail-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="mail-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.contactInfo}>
                   <Text style={styles.contactTitle}>Email</Text>
@@ -241,7 +241,7 @@ const AboutUsScreen = () => {
             <View style={styles.contactItem}>
               <View style={styles.contactItemLeft}>
                 <View style={styles.contactIcon}>
-                  <Ionicons name="globe-outline" size={20} color={COLORS.primary} />
+                  <Ionicons name="globe-outline" size={20} color={COLORS.black} />
                 </View>
                 <View style={styles.contactInfo}>
                   <Text style={styles.contactTitle}>Website</Text>
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
   missionText: {
     ...FONTS.regular,
     fontSize: SIZES.body1,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
     lineHeight: 22,
     textAlign: 'center',
   },
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
   infoTitle: {
     ...FONTS.semiBold,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
     marginBottom: 2,
   },
   infoValue: {
@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
   valueDescription: {
     ...FONTS.regular,
     fontSize: SIZES.body1,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
   },
   achievementCard: {
     backgroundColor: COLORS.white,
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
   achievementDescription: {
     ...FONTS.regular,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
   },
   contactCard: {
     backgroundColor: COLORS.white,
@@ -487,7 +487,7 @@ const styles = StyleSheet.create({
   contactTitle: {
     ...FONTS.semiBold,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
     marginBottom: 2,
   },
   contactValue: {

@@ -212,7 +212,7 @@ const SecurityScreen = () => {
         {/* Security Settings */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Ionicons name="shield-checkmark-outline" size={24} color={COLORS.primary} />
+            <Ionicons name="shield-checkmark-outline" size={24} color={COLORS.text} />
             <Text style={styles.sectionTitle}>Bảo mật tài khoản</Text>
           </View>
 
@@ -260,7 +260,7 @@ const SecurityScreen = () => {
                 Thay đổi mật khẩu tài khoản
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={COLORS.gray} />
+            <Ionicons name="chevron-forward" size={20} color={COLORS.black} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -274,7 +274,7 @@ const SecurityScreen = () => {
                 Bảo mật tài khoản với xác thực 2 bước
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={COLORS.gray} />
+            <Ionicons name="chevron-forward" size={20} color={COLORS.black} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -288,7 +288,7 @@ const SecurityScreen = () => {
                 Xem lịch sử đăng nhập tài khoản
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={COLORS.gray} />
+            <Ionicons name="chevron-forward" size={20} color={COLORS.black} />
           </TouchableOpacity>
         </View>
 
@@ -318,7 +318,7 @@ const SecurityScreen = () => {
                 onPress={handleCancelChangePassword}
                 activeOpacity={0.7}
               >
-                <Ionicons name="close" size={24} color={COLORS.text} />
+                <Ionicons name="close" size={24} color={COLORS.black} />
               </TouchableOpacity>
               <Text style={styles.modalTitle}>Đổi mật khẩu</Text>
               <View style={styles.placeholder} />
@@ -333,7 +333,7 @@ const SecurityScreen = () => {
                          value={currentPassword}
                          onChangeText={setCurrentPassword}
                          placeholder="Nhập mật khẩu hiện tại"
-                         placeholderTextColor={COLORS.textSecondary}
+                         placeholderTextColor={COLORS.text}
                          secureTextEntry={!showCurrentPassword}
                          autoCapitalize="none"
                        />
@@ -345,7 +345,7 @@ const SecurityScreen = () => {
                          <Ionicons
                            name={showCurrentPassword ? "eye-off" : "eye"}
                            size={20}
-                           color={COLORS.textSecondary}
+                           color={COLORS.black}
                          />
                        </TouchableOpacity>
                      </View>
@@ -359,7 +359,7 @@ const SecurityScreen = () => {
                   value={newPassword}
                   onChangeText={setNewPassword}
                   placeholder="Nhập mật khẩu mới"
-                  placeholderTextColor={COLORS.textSecondary}
+                  placeholderTextColor={COLORS.text}
                   secureTextEntry={!showNewPassword}
                   autoCapitalize="none"
                 />
@@ -371,7 +371,7 @@ const SecurityScreen = () => {
                   <Ionicons
                     name={showNewPassword ? "eye-off" : "eye"}
                     size={20}
-                    color={COLORS.textSecondary}
+                    color={COLORS.black}
                   />
                 </TouchableOpacity>
               </View>
@@ -385,7 +385,7 @@ const SecurityScreen = () => {
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
                   placeholder="Nhập lại mật khẩu mới"
-                  placeholderTextColor={COLORS.textSecondary}
+                  placeholderTextColor={COLORS.text}
                   secureTextEntry={!showConfirmPassword}
                   autoCapitalize="none"
                 />
@@ -397,7 +397,7 @@ const SecurityScreen = () => {
                   <Ionicons
                     name={showConfirmPassword ? "eye-off" : "eye"}
                     size={20}
-                    color={COLORS.textSecondary}
+                    color={COLORS.text}
                   />
                 </TouchableOpacity>
               </View>
@@ -503,7 +503,7 @@ const styles = StyleSheet.create({
   settingDescription: {
     ...FONTS.regular,
     fontSize: SIZES.body3,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
   },
   setupButton: {
     flexDirection: 'row',

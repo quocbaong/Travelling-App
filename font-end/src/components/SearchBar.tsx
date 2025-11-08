@@ -45,7 +45,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           onChangeText={onChangeText}
           onSubmitEditing={onSubmitEditing}
           placeholder={placeholder}
-          placeholderTextColor={COLORS.textSecondary}
+          placeholderTextColor={COLORS.black}
           autoFocus={autoFocus}
           returnKeyType="search"
         />
