@@ -28,6 +28,7 @@ import PaymentSuccessScreen from '../screens/PaymentSuccessScreen';
 import PaymentResultScreen from '../screens/PaymentResultScreen';
 import PaymentMethodsScreen from '../screens/PaymentMethodsScreen';
 import OrderDetailsScreen from '../screens/OrderDetailsScreen';
+import ServicePackageDetailScreen from '../screens/ServicePackageDetailScreen';
 import SecurityScreen from '../screens/SecurityScreen';
 import SupportScreen from '../screens/SupportScreen';
 import DarkModeScreen from '../screens/DarkModeScreen';
@@ -186,6 +187,10 @@ export const AppNavigator = () => {
         <Stack.Screen 
           name="PaymentMethods" 
           component={PaymentMethodsScreen}
+        />
+        <Stack.Screen 
+          name="ServicePackageDetail" 
+          component={ServicePackageDetailScreen}
         />
         <Stack.Screen 
           name="Security" 
