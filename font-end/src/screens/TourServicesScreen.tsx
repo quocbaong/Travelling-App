@@ -195,7 +195,17 @@ const TourServicesScreen = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Header title="Dịch vụ tour" showBack onBackPress={() => navigation.goBack()} />
+      <View style={styles.customHeader}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back" size={24} color={COLORS.black} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Dịch vụ tour</Text>
+        <View style={styles.headerSpacer} />
+      </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Destination Header */}
@@ -274,14 +284,14 @@ const TourServicesScreen = () => {
                 style={styles.participantButton}
                 onPress={() => setParticipants(Math.max(1, participants - 1))}
               >
-                <Ionicons name="remove" size={20} color={COLORS.primary} />
+                <Ionicons name="remove" size={20} color={COLORS.black} />
               </TouchableOpacity>
               <Text style={styles.participantCount}>{participants}</Text>
               <TouchableOpacity
                 style={styles.participantButton}
                 onPress={() => setParticipants(Math.min(8, participants + 1))}
               >
-                <Ionicons name="add" size={20} color={COLORS.primary} />
+                <Ionicons name="add" size={20} color={COLORS.black} />
               </TouchableOpacity>
             </View>
           </View>
@@ -312,8 +322,14 @@ const TourServicesScreen = () => {
                       <View style={styles.serviceIconContainer}>
                         <Ionicons
                           name={service.icon as any}
-                          size={24}
-                          color={selectedServices.includes(service.id) ? COLORS.primary : COLORS.gray}
+                          size={28}
+                          style={{lineHeight: 45}}
+                          color={
+                            service.id === '1' ? '#4CAF50' : // Xanh lá cho gói cơ bản
+                            service.id === '2' ? '#FF9800' : // Cam cho gói nâng cao
+                            service.id === '3' ? '#9C27B0' : // Tím cho gói Luxury
+                            COLORS.primary
+                          }
                         />
                       </View>
                       <View style={styles.serviceDetails}>
@@ -361,7 +377,7 @@ const TourServicesScreen = () => {
 
           {/* Add-on Services */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Dịch vụ bổ sung</Text>
+            <Text style={[styles.sectionTitle, {marginTop: -20}]}>Dịch vụ bổ sung</Text>
             <Text style={styles.sectionSubtitle}>
               Chọn thêm các dịch vụ bổ sung (tùy chọn)
             </Text>
@@ -383,8 +399,9 @@ const TourServicesScreen = () => {
                       <View style={styles.serviceIconContainer}>
                         <Ionicons
                           name={service.icon as any}
-                          size={24}
-                          color={selectedServices.includes(service.id) ? COLORS.primary : COLORS.gray}
+                          size={28}
+                          style={{lineHeight: 45}}
+                          color="#FF6B6B"
                         />
                       </View>
                       <View style={styles.serviceDetails}>
@@ -412,17 +429,6 @@ const TourServicesScreen = () => {
                       ))}
                     </View>
                   )}
-
-                  <View style={styles.serviceCheckbox}>
-                    <View style={[
-                      styles.checkbox,
-                      selectedServices.includes(service.id) && styles.checkboxSelected,
-                    ]}>
-                      {selectedServices.includes(service.id) && (
-                        <Ionicons name="checkmark" size={16} color={COLORS.white} />
-                      )}
-                    </View>
-                  </View>
                 </TouchableOpacity>
               </View>
             ))}
@@ -491,8 +497,44 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  customHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: SIZES.md,
+    paddingVertical: SIZES.sm,
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 20,
+    backgroundColor: COLORS.white,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  headerTitle: {
+    ...FONTS.bold,
+    fontSize: SIZES.h4 + 2,
+    color: COLORS.text,
+    flex: 1,
+    textAlign: 'center',
+  },
+  headerSpacer: {
+    width: 40,
+  },
   destinationHeader: {
-    height: 200,
+    height: 220,
     position: 'relative',
   },
   destinationImage: {
@@ -541,7 +583,14 @@ const styles = StyleSheet.create({
     margin: SIZES.md,
     borderRadius: SIZES.radiusMd,
     padding: SIZES.md,
-    ...SHADOWS.light,
+    shadowColor: COLORS.black,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
   selectionTitle: {
     ...FONTS.bold,
@@ -571,16 +620,19 @@ const styles = StyleSheet.create({
     gap: SIZES.sm,
     paddingHorizontal: SIZES.md,
     paddingVertical: SIZES.sm,
-    backgroundColor: COLORS.veryLightGray,
+    backgroundColor: COLORS.white,
     borderRadius: SIZES.radiusSm,
     borderWidth: 1,
-    borderColor: COLORS.lightGray,
+    borderColor: '#E0E0E0',
+    minWidth: 140,
+    minHeight: 40,
   },
   dateButtonDisabled: {
-    borderColor: COLORS.lightGray,
+    borderColor: '#E0E0E0',
     opacity: 0.7,
-    backgroundColor: COLORS.veryLightGray,
-    
+    backgroundColor: COLORS.white,
+    minWidth: 140,
+    minHeight: 40,
   },
   dateButtonText: {
     ...FONTS.regular,
@@ -598,12 +650,14 @@ const styles = StyleSheet.create({
     gap: SIZES.md,
   },
   participantButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: COLORS.primaryLight,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.white,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
   participantCount: {
     ...FONTS.bold,
@@ -624,7 +678,7 @@ const styles = StyleSheet.create({
   sectionSubtitle: {
     ...FONTS.regular,
     fontSize: SIZES.body1,
-    color: COLORS.textSecondary,
+    color: COLORS.black,
     marginBottom: SIZES.lg,
   },
   serviceCard: {
@@ -633,12 +687,12 @@ const styles = StyleSheet.create({
     padding: SIZES.md,
     marginBottom: SIZES.md,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: '#E0E0E0',
     ...SHADOWS.light,
   },
   serviceCardSelected: {
     borderColor: COLORS.primary,
-    backgroundColor: COLORS.veryLightGray,
+    backgroundColor: COLORS.white,
   },
   serviceHeader: {
     flexDirection: 'row',
@@ -652,10 +706,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   serviceIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SIZES.sm,
@@ -666,13 +716,14 @@ const styles = StyleSheet.create({
   serviceName: {
     ...FONTS.bold,
     fontSize: SIZES.h5,
-    color: COLORS.text,
+    color: COLORS.black,
     marginBottom: 4,
   },
   serviceDescription: {
     ...FONTS.regular,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.black,
+    opacity: 0.7,
   },
   servicePrice: {
     alignItems: 'flex-end',
@@ -694,11 +745,12 @@ const styles = StyleSheet.create({
   },
   includedSection: {
     marginTop: SIZES.sm,
+    marginLeft: SIZES.lg + 10,
   },
   includedTitle: {
     ...FONTS.semiBold,
     fontSize: SIZES.body2,
-    color: COLORS.text,
+    color: COLORS.black,
     marginBottom: SIZES.xs,
   },
   includedItem: {
@@ -709,8 +761,9 @@ const styles = StyleSheet.create({
   },
   includedText: {
     ...FONTS.regular,
-    fontSize: SIZES.body3,
-    color: COLORS.textSecondary,
+    fontSize: SIZES.body2,
+    color: COLORS.black,
+    opacity: 0.8,
   },
   optionalSection: {
     marginTop: SIZES.sm,
@@ -718,7 +771,7 @@ const styles = StyleSheet.create({
   optionalTitle: {
     ...FONTS.semiBold,
     fontSize: SIZES.body2,
-    color: COLORS.text,
+    color: COLORS.black,
     marginBottom: SIZES.xs,
   },
   optionalItem: {
@@ -730,7 +783,8 @@ const styles = StyleSheet.create({
   optionalText: {
     ...FONTS.regular,
     fontSize: SIZES.body3,
-    color: COLORS.textSecondary,
+    color: COLORS.black,
+    opacity: 0.8,
   },
   summaryCard: {
     backgroundColor: COLORS.white,
@@ -741,7 +795,7 @@ const styles = StyleSheet.create({
   summaryTitle: {
     ...FONTS.bold,
     fontSize: SIZES.h5,
-    color: COLORS.text,
+    color: COLORS.black,
     marginBottom: SIZES.md,
   },
   summaryItem: {
@@ -753,16 +807,17 @@ const styles = StyleSheet.create({
   summaryLabel: {
     ...FONTS.regular,
     fontSize: SIZES.body1,
-    color: COLORS.textSecondary,
+    color: COLORS.black,
+    opacity: 0.8,
   },
   summaryValue: {
     ...FONTS.semiBold,
     fontSize: SIZES.body1,
-    color: COLORS.text,
+    color: COLORS.black,
   },
   summaryDivider: {
     height: 1,
-    backgroundColor: COLORS.lightGray,
+    backgroundColor: '#E0E0E0',
     marginVertical: SIZES.sm,
   },
   summaryTotal: {
@@ -773,12 +828,12 @@ const styles = StyleSheet.create({
   totalLabel: {
     ...FONTS.bold,
     fontSize: SIZES.h5,
-    color: COLORS.text,
+    color: COLORS.black,
   },
   totalValue: {
     ...FONTS.bold,
     fontSize: SIZES.h4,
-    color: COLORS.primary,
+    color: COLORS.black,
   },
   bottomAction: {
     flexDirection: 'row',
@@ -805,25 +860,6 @@ const styles = StyleSheet.create({
   continueButton: {
     flex: 1,
     marginLeft: SIZES.md,
-  },
-  serviceCheckbox: {
-    position: 'absolute',
-    top: SIZES.md,
-    right: SIZES.md,
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: COLORS.gray,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.white,
-  },
-  checkboxSelected: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
   },
 });
 
