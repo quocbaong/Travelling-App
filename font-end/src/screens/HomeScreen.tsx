@@ -218,7 +218,7 @@ const HomeScreen = () => {
           style={styles.notificationButton}
           onPress={handleNotificationPress}
         >
-          <Ionicons name="notifications-outline" size={24} color={COLORS.text} />
+          <Ionicons name="notifications" size={24} color="#0077B6" />
           {unreadNotificationCount > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SIZES.md,
     paddingVertical: SIZES.sm,
     paddingTop: SIZES.md,
-    marginBottom: SIZES.sm,
+    marginBottom: SIZES.xs,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -441,7 +441,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -467,7 +466,8 @@ const styles = StyleSheet.create({
   },
   searchSection: {
     paddingHorizontal: SIZES.md,
-    marginVertical: SIZES.md,
+    marginTop: SIZES.xs,
+    marginBottom: SIZES.md,
   },
   searchBar: {
     flexDirection: 'row',
