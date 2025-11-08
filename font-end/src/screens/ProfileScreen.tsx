@@ -47,28 +47,28 @@ const ProfileScreen = () => {
     {
       id: 'personal',
       title: 'Thông tin cá nhân',
-      icon: 'person-outline',
+      icon: 'person',
       onPress: () => handleNavigateWithAuth('PersonalInfo', 'Profile'),
       requireAuth: true,
     },
     {
       id: 'payment',
       title: 'Phương thức thanh toán',
-      icon: 'card-outline',
+      icon: 'card',
       onPress: () => handleNavigateWithAuth('PaymentMethods', 'Profile'),
       requireAuth: true,
     },
     {
       id: 'security',
       title: 'Bảo mật',
-      icon: 'shield-checkmark-outline',
+      icon: 'shield-checkmark',
       onPress: () => handleNavigateWithAuth('Security', 'Profile'),
       requireAuth: true,
     },
     {
       id: 'language',
       title: 'Ngôn ngữ',
-      icon: 'language-outline',
+      icon: 'language',
       value: 'Tiếng Việt',
       onPress: () => navigation.navigate('Language'),
       requireAuth: false,
@@ -79,25 +79,25 @@ const ProfileScreen = () => {
     {
       id: 'help',
       title: 'Trung tâm trợ giúp',
-      icon: 'help-circle-outline',
+      icon: 'help-circle',
       onPress: () => navigation.navigate('Support'),
     },
     {
       id: 'terms',
       title: 'Điều khoản dịch vụ',
-      icon: 'document-text-outline',
+      icon: 'document-text',
       onPress: () => navigation.navigate('TermsOfService'),
     },
     {
       id: 'privacy',
       title: 'Chính sách bảo mật',
-      icon: 'lock-closed-outline',
+      icon: 'lock-closed',
       onPress: () => navigation.navigate('PrivacyPolicy'),
     },
     {
       id: 'about',
       title: 'Về chúng tôi',
-      icon: 'information-circle-outline',
+      icon: 'information-circle',
       onPress: () => navigation.navigate('AboutUs'),
     },
   ];
@@ -160,7 +160,7 @@ const ProfileScreen = () => {
               style={styles.editButton}
               onPress={() => handleNavigateWithAuth('PersonalInfo', 'Profile')}
             >
-              <Ionicons name="create-outline" size={20} color={COLORS.black} />
+              <Ionicons name="create" size={20} color="#0077B6" />
             </TouchableOpacity>
           )}
         </View>
@@ -208,9 +208,9 @@ const ProfileScreen = () => {
               <View style={styles.menuItemLeft}>
                 <View style={styles.menuIcon}>
                   <Ionicons
-                    name="notifications-outline"
+                    name="notifications"
                     size={20}
-                    color={COLORS.black}
+                    color="#0077B6"
                   />
                 </View>
                 <Text style={styles.menuItemText}>Thông báo</Text>
@@ -230,9 +230,9 @@ const ProfileScreen = () => {
               <View style={styles.menuItemLeft}>
                 <View style={styles.menuIcon}>
                   <Ionicons
-                    name="moon-outline"
+                    name="moon"
                     size={20}
-                    color={COLORS.black}
+                    color="#0077B6"
                   />
                 </View>
                 <Text style={styles.menuItemText}>Chế độ tối</Text>
@@ -261,7 +261,7 @@ const ProfileScreen = () => {
                       <Ionicons
                         name={item.icon as any}
                         size={20}
-                        color={COLORS.black}
+                        color="#0077B6"
                       />
                     </View>
                     <Text style={styles.menuItemText}>{item.title}</Text>
@@ -300,7 +300,7 @@ const ProfileScreen = () => {
                       <Ionicons
                         name={item.icon as any}
                         size={20}
-                        color={COLORS.black}
+                        color="#0077B6"
                       />
                     </View>
                     <Text style={styles.menuItemText}>{item.title}</Text>
@@ -308,7 +308,7 @@ const ProfileScreen = () => {
                   <Ionicons
                     name="chevron-forward"
                     size={20}
-                    color={COLORS.black}
+                    color={COLORS.text}
                   />
                 </TouchableOpacity>
               </View>
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.veryLightGray,
+    backgroundColor: COLORS.white,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -455,8 +455,6 @@ const styles = StyleSheet.create({
   menuIcon: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SIZES.sm,
@@ -484,7 +482,7 @@ const styles = StyleSheet.create({
   menuItemValue: {
     ...FONTS.regular,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
   },
   divider: {
     height: 1,
