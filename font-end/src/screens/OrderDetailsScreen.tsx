@@ -85,6 +85,41 @@ const OrderDetailsScreen = () => {
     return serviceNames[serviceId] || `Dịch vụ ${serviceId}`;
   };
 
+  // Get room type and capacity based on selected service package
+  const getRoomInfo = () => {
+    // Find the main package (1, 2, or 3)
+    const mainPackage = orderData.selectedServices.find(id => ['1', '2', '3'].includes(id));
+    
+    switch (mainPackage) {
+      case '1':
+        return {
+          roomType: 'Phòng Standard',
+          bedType: 'Giường đôi',
+          capacity: `${orderData.guests} người`,
+        };
+      case '2':
+        return {
+          roomType: 'Phòng Deluxe',
+          bedType: 'Giường đôi hoặc 2 giường đơn',
+          capacity: `${orderData.guests} người`,
+        };
+      case '3':
+        return {
+          roomType: 'Phòng Suite',
+          bedType: 'Giường King Size',
+          capacity: `${orderData.guests} người`,
+        };
+      default:
+        return {
+          roomType: 'Phòng Standard',
+          bedType: 'Giường đôi',
+          capacity: `${orderData.guests} người`,
+        };
+    }
+  };
+
+  const roomInfo = getRoomInfo();
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed':
@@ -234,15 +269,11 @@ const OrderDetailsScreen = () => {
             <View style={styles.dateColumn}>
               <View style={styles.dateItem}>
                 <Text style={styles.dateLabel}>Loại phòng</Text>
-                <Text style={styles.dateValue}>
-                  {orderData.destination.category === 'Luxury' ? 'Phòng Deluxe' :
-                   orderData.destination.category === 'Beach' ? 'Phòng hướng biển' :
-                   'Phòng tiêu chuẩn'}
-                </Text>
+                <Text style={styles.dateValue}>{roomInfo.roomType}</Text>
               </View>
               <View style={styles.dateItem}>
                 <Text style={styles.dateLabel}>Sức chứa</Text>
-                <Text style={styles.dateValue}>Giường đôi</Text>
+                <Text style={styles.dateValue}>{roomInfo.capacity}</Text>
               </View>
             </View>
           </View>

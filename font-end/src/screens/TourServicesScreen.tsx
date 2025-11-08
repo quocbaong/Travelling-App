@@ -363,6 +363,18 @@ const TourServicesScreen = () => {
                           <Text style={styles.includedText}>{item}</Text>
                         </View>
                       ))}
+                      <TouchableOpacity
+                        style={styles.viewDetailsButton}
+                        onPress={() => {
+                          (navigation as any).navigate('ServicePackageDetail', {
+                            servicePackage: service,
+                          });
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.viewDetailsText}>Xem chi tiết</Text>
+                        <Ionicons name="chevron-forward" size={14} color={COLORS.primary} />
+                      </TouchableOpacity>
                     </View>
                   )}
 
@@ -771,6 +783,18 @@ const styles = StyleSheet.create({
     fontSize: SIZES.body2,
     color: COLORS.black,
     opacity: 0.8,
+  },
+  viewDetailsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    marginLeft: SIZES.md+5,
+    gap: 4,
+  },
+  viewDetailsText: {
+    ...FONTS.regular,
+    fontSize: SIZES.body2,
+    color: COLORS.primary,
   },
   optionalSection: {
     marginTop: SIZES.sm,
