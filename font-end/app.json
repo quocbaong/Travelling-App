@@ -27,8 +27,15 @@
       "usesCleartextTraffic": true,
       "permissions": [
         "INTERNET",
-        "ACCESS_NETWORK_STATE"
-      ]
+        "ACCESS_NETWORK_STATE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDvwhqhHZE5a4OzcV9pFjQ5uLK7yz2x4GU"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png",

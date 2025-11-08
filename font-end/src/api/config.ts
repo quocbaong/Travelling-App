@@ -6,9 +6,15 @@ const getBaseUrl = () => {
   if (__DEV__) {
     // Development URLs
     if (Platform.OS === 'android') {
+
       return 'http://10.97.64.139:8080/api'; // Android emulator with real IP
     } else if (Platform.OS === 'ios') {
       return 'http://10.97.64.139:8080/api'; // iOS simulator with real IP
+
+      return 'http://192.168.1.27:8080/api'; // Android emulator with real IP
+    } else if (Platform.OS === 'ios') {
+      return 'http://192.168.1.27:8080/api'; // iOS simulator with real IP
+
     } else {
       return 'http://localhost:8080/api'; // Web
     }
@@ -16,6 +22,11 @@ const getBaseUrl = () => {
   // Production URL (replace with your actual production URL)
   return 'https://your-production-api.com/api';
 };
+
+// Google Maps API Configuration
+// Lấy API key từ: https://console.cloud.google.com/
+// Sau đó thay YOUR_GOOGLE_MAPS_API_KEY_HERE bằng API key của bạn
+export const GOOGLE_MAPS_API_KEY = 'AIzaSyDvwhqhHZE5a4OzcV9pFjQ5uLK7yz2x4GU';
 
 export const API_CONFIG = {
   BASE_URL: getBaseUrl(),

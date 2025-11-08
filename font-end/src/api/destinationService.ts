@@ -5,14 +5,25 @@ import { mockDestinations } from './mockData';
 class DestinationService {
   async getAllDestinations(): Promise<Destination[]> {
     try {
-      const result = await HttpClient.get<Destination[]>(API_CONFIG.ENDPOINTS.DESTINATIONS);
+      const result = await HttpClient.get<any[]>(API_CONFIG.ENDPOINTS.DESTINATIONS);
       console.log(`✅ Backend API success: ${result.length} destinations`);
-      console.log(`📊 Sample backend destinations:`, result.slice(0, 3).map(d => ({ 
+      
+      // Transform backend response to frontend format
+      const destinations: Destination[] = result.map((d: any) => ({
+        ...d,
+        latitude: d.latitude ?? d.location?.latitude,
+        longitude: d.longitude ?? d.location?.longitude,
+        reviews: d.reviews ?? d.reviewCount ?? 0,
+      }));
+      
+      console.log(`📊 Sample backend destinations:`, destinations.slice(0, 3).map(d => ({ 
         name: d.name, 
         images: d.images?.length || 0, 
-        imageUrl: d.imageUrl 
+        imageUrl: d.imageUrl,
+        latitude: d.latitude,
+        longitude: d.longitude,
       })));
-      return result;
+      return destinations;
     } catch (error) {
       console.log('🔄 Using fallback mock data for destinations');
       console.log(`📊 Mock data: ${mockDestinations.length} destinations`);
@@ -27,7 +38,14 @@ class DestinationService {
 
   async getFeaturedDestinations(): Promise<Destination[]> {
     try {
-      return await HttpClient.get<Destination[]>(API_CONFIG.ENDPOINTS.DESTINATIONS_FEATURED);
+      const result = await HttpClient.get<any[]>(API_CONFIG.ENDPOINTS.DESTINATIONS_FEATURED);
+      // Transform backend response
+      return result.map((d: any) => ({
+        ...d,
+        latitude: d.latitude ?? d.location?.latitude,
+        longitude: d.longitude ?? d.location?.longitude,
+        reviews: d.reviews ?? d.reviewCount ?? 0,
+      }));
     } catch (error) {
       console.log('🔄 Using fallback mock data for featured destinations');
       return mockDestinations.filter(dest => dest.rating >= 4.8).slice(0, 5);
@@ -36,7 +54,14 @@ class DestinationService {
 
   async getPopularDestinations(): Promise<Destination[]> {
     try {
-      return await HttpClient.get<Destination[]>(API_CONFIG.ENDPOINTS.DESTINATIONS_POPULAR);
+      const result = await HttpClient.get<any[]>(API_CONFIG.ENDPOINTS.DESTINATIONS_POPULAR);
+      // Transform backend response
+      return result.map((d: any) => ({
+        ...d,
+        latitude: d.latitude ?? d.location?.latitude,
+        longitude: d.longitude ?? d.location?.longitude,
+        reviews: d.reviews ?? d.reviewCount ?? 0,
+      }));
     } catch (error) {
       console.log('🔄 Using fallback mock data for popular destinations');
       return mockDestinations.filter(dest => dest.rating >= 4.6).slice(0, 8);
@@ -45,10 +70,22 @@ class DestinationService {
 
   async getDestinationById(id: string): Promise<Destination | undefined> {
     try {
-      return await HttpClient.get<Destination>(`${API_CONFIG.ENDPOINTS.DESTINATIONS}/${id}`);
+      const response = await HttpClient.get<any>(`${API_CONFIG.ENDPOINTS.DESTINATIONS}/${id}`);
+      
+      // Transform backend response to frontend format
+      // Backend returns location as object {latitude, longitude}, frontend expects direct properties
+      const destination: Destination = {
+        ...response,
+        latitude: response.latitude ?? response.location?.latitude,
+        longitude: response.longitude ?? response.location?.longitude,
+        reviews: response.reviews ?? response.reviewCount ?? 0,
+      };
+      
+      return destination;
     } catch (error) {
       console.error('Failed to get destination:', error);
-      return undefined;
+      // Fallback to mock data
+      return mockDestinations.find(d => d.id === id);
     }
   }
 
