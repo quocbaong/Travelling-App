@@ -109,13 +109,13 @@ const RegisterScreen = () => {
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Họ và tên</Text>
               <View style={styles.inputWrapper}>
-                <Ionicons name="person-outline" size={20} color={COLORS.gray} />
+                <Ionicons name="person-outline" size={20} color={COLORS.black} />
                 <TextInput
                   style={styles.input}
                   value={formData.name}
                   onChangeText={(value) => handleInputChange('name', value)}
                   placeholder="Nhập họ và tên"
-                  placeholderTextColor={COLORS.gray}
+                  placeholderTextColor={COLORS.black}
                 />
               </View>
             </View>
@@ -124,13 +124,13 @@ const RegisterScreen = () => {
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Email</Text>
               <View style={styles.inputWrapper}>
-                <Ionicons name="mail-outline" size={20} color={COLORS.gray} />
+                <Ionicons name="mail-outline" size={20} color={COLORS.black} />
                 <TextInput
                   style={styles.input}
                   value={formData.email}
                   onChangeText={(value) => handleInputChange('email', value)}
                   placeholder="Nhập email"
-                  placeholderTextColor={COLORS.gray}
+                  placeholderTextColor={COLORS.black}
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
@@ -141,13 +141,13 @@ const RegisterScreen = () => {
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Số điện thoại</Text>
               <View style={styles.inputWrapper}>
-                <Ionicons name="call-outline" size={20} color={COLORS.gray} />
+                <Ionicons name="call-outline" size={20} color={COLORS.black} />
                 <TextInput
                   style={styles.input}
                   value={formData.phone}
                   onChangeText={(value) => handleInputChange('phone', value)}
                   placeholder="Nhập số điện thoại"
-                  placeholderTextColor={COLORS.gray}
+                  placeholderTextColor={COLORS.black}
                   keyboardType="phone-pad"
                 />
               </View>
@@ -157,13 +157,13 @@ const RegisterScreen = () => {
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Mật khẩu</Text>
               <View style={styles.inputWrapper}>
-                <Ionicons name="lock-closed-outline" size={20} color={COLORS.gray} />
+                <Ionicons name="lock-closed-outline" size={20} color={COLORS.black} />
                 <TextInput
                   style={styles.input}
                   value={formData.password}
                   onChangeText={(value) => handleInputChange('password', value)}
                   placeholder="Nhập mật khẩu"
-                  placeholderTextColor={COLORS.gray}
+                  placeholderTextColor={COLORS.black}
                   secureTextEntry={!showPassword}
                 />
                 <TouchableOpacity
@@ -173,7 +173,7 @@ const RegisterScreen = () => {
                   <Ionicons
                     name={showPassword ? 'eye-outline' : 'eye-off-outline'}
                     size={20}
-                    color={COLORS.gray}
+                    color={COLORS.black}
                   />
                 </TouchableOpacity>
               </View>
@@ -183,13 +183,13 @@ const RegisterScreen = () => {
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Xác nhận mật khẩu</Text>
               <View style={styles.inputWrapper}>
-                <Ionicons name="lock-closed-outline" size={20} color={COLORS.gray} />
+                <Ionicons name="lock-closed-outline" size={20} color={COLORS.black} />
                 <TextInput
                   style={styles.input}
                   value={formData.confirmPassword}
                   onChangeText={(value) => handleInputChange('confirmPassword', value)}
                   placeholder="Nhập lại mật khẩu"
-                  placeholderTextColor={COLORS.gray}
+                  placeholderTextColor={COLORS.black}
                   secureTextEntry={!showConfirmPassword}
                 />
                 <TouchableOpacity
@@ -199,7 +199,7 @@ const RegisterScreen = () => {
                   <Ionicons
                     name={showConfirmPassword ? 'eye-outline' : 'eye-off-outline'}
                     size={20}
-                    color={COLORS.gray}
+                    color={COLORS.black}
                   />
                 </TouchableOpacity>
               </View>
@@ -231,12 +231,13 @@ const RegisterScreen = () => {
               onPress={handleRegister}
               loading={loading}
               style={styles.registerButton}
+              textStyle={styles.registerButtonText}
             />
 
             {/* Login Link */}
             <View style={styles.loginContainer}>
               <Text style={styles.loginText}>Đã có tài khoản? </Text>
-              <TouchableOpacity onPress={() => (navigation as any).navigate('MainTabs', { screen: 'Home' })}>
+              <TouchableOpacity onPress={() => (navigation as any).navigate('Login')}>
                 <Text style={styles.loginLink}>Đăng nhập ngay</Text>
               </TouchableOpacity>
             </View>
@@ -253,8 +254,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   header: {
-    paddingTop: SIZES.md,
-    paddingBottom: SIZES.lg,
+    paddingTop: SIZES.md+1,
+    paddingBottom: SIZES.md+1,
     paddingHorizontal: SIZES.md,
   },
   headerContent: {
@@ -272,7 +273,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...FONTS.bold,
-    fontSize: SIZES.h4,
+    fontSize: SIZES.h5+5,
     color: COLORS.white,
   },
   placeholder: {
@@ -287,14 +288,14 @@ const styles = StyleSheet.create({
   title: {
     ...FONTS.bold,
     fontSize: SIZES.h2,
-    color: COLORS.text,
+    color: COLORS.black,
     marginBottom: SIZES.sm,
     textAlign: 'center',
   },
   subtitle: {
     ...FONTS.regular,
     fontSize: SIZES.body1,
-    color: COLORS.textSecondary,
+    color: COLORS.black,
     textAlign: 'center',
     marginBottom: SIZES.xl,
   },
@@ -304,7 +305,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     ...FONTS.semiBold,
     fontSize: SIZES.body1,
-    color: COLORS.text,
+    color: COLORS.black,
     marginBottom: SIZES.sm,
   },
   inputWrapper: {
@@ -321,7 +322,7 @@ const styles = StyleSheet.create({
     flex: 1,
     ...FONTS.regular,
     fontSize: SIZES.body1,
-    color: COLORS.text,
+    color: COLORS.black,
   },
   eyeButton: {
     padding: SIZES.xs,
@@ -361,6 +362,9 @@ const styles = StyleSheet.create({
   },
   registerButton: {
     marginBottom: SIZES.xl,
+  },
+  registerButtonText: {
+    fontSize: SIZES.h5+1,
   },
   loginContainer: {
     flexDirection: 'row',

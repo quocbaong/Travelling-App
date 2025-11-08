@@ -178,25 +178,38 @@ const ProfileScreen = () => {
         )}
 
         {/* Stats */}
-        {!isGuest && (
-          <View style={styles.statsContainer}>
-            <TouchableOpacity 
-              style={styles.statItem}
-              onPress={() => handleNavigateWithAuth('Bookings', 'Bookings')}
-            >
-              <Text style={styles.statValue}>{userBookings.length}</Text>
-              <Text style={styles.statLabel}>Chuyến đi</Text>
-            </TouchableOpacity>
-            <View style={styles.statDivider} />
-            <TouchableOpacity 
-              style={styles.statItem}
-              onPress={() => handleNavigateWithAuth('Favorites', 'Favorites')}
-            >
-              <Text style={styles.statValue}>{userFavorites.length}</Text>
-              <Text style={styles.statLabel}>Yêu thích</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        {!isGuest && (() => {
+          // Tính số chuyến đi "sắp tới" (chỉ tour active và chưa qua ngày khởi hành)
+          const now = new Date();
+          const upcomingBookings = userBookings.filter(booking => {
+            try {
+              const depDate = new Date(booking.departureDate.split('/').reverse().join('-'));
+              return depDate > now && (booking.status === 'confirmed' || booking.status === 'pending');
+            } catch (error) {
+              return false;
+            }
+          });
+          
+          return (
+            <View style={styles.statsContainer}>
+              <TouchableOpacity 
+                style={styles.statItem}
+                onPress={() => handleNavigateWithAuth('Bookings', 'Bookings')}
+              >
+                <Text style={styles.statValue}>{upcomingBookings.length}</Text>
+                <Text style={styles.statLabel}>Chuyến đi</Text>
+              </TouchableOpacity>
+              <View style={styles.statDivider} />
+              <TouchableOpacity 
+                style={styles.statItem}
+                onPress={() => handleNavigateWithAuth('Favorites', 'Favorites')}
+              >
+                <Text style={styles.statValue}>{userFavorites.length}</Text>
+                <Text style={styles.statLabel}>Yêu thích</Text>
+              </TouchableOpacity>
+            </View>
+          );
+        })()}
 
         {/* Settings Section */}
         <View style={styles.section}>
