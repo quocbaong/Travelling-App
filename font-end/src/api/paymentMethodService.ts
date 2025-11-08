@@ -96,7 +96,12 @@ class PaymentMethodService {
         `${API_CONFIG.ENDPOINTS.PAYMENT_METHODS_USER}/${userId}`
       );
       return response;
-    } catch (error) {
+    } catch (error: any) {
+      // Nếu endpoint chưa được implement, không log lỗi để tránh làm phiền
+      if (error?.message?.includes('No static resource') || error?.message?.includes('404')) {
+        // Endpoint chưa có, trả về mảng rỗng để frontend hiển thị mẫu
+        return [];
+      }
       console.error('❌ getUserPaymentMethods error:', error);
       return [];
     }
