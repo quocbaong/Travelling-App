@@ -7,7 +7,7 @@ const getBaseUrl = () => {
     // Development URLs
     if (Platform.OS === 'android') {
 
-      return 'http://192.168.2.219:8080/api'; // Android emulator with real IP
+      return 'http://192.168.1.27:8080/api'; // Android emulator with real IP
     } else if (Platform.OS === 'ios') {
       return 'http://192.168.2.219:8080/api'; // iOS simulator with real IP
 
@@ -61,6 +61,11 @@ export const API_CONFIG = {
     
     // Notifications
     NOTIFICATIONS: '/notifications',
+    
+    // Payment Methods
+    PAYMENT_METHODS: '/payment-methods',
+    PAYMENT_METHODS_USER: '/payment-methods/user',
+    PROCESS_PAYMENT: '/payments/process',
   },
   TIMEOUT: 10000, // 10 seconds
 };

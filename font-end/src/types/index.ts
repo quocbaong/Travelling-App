@@ -84,7 +84,7 @@ export interface SearchFilters {
 }
 
 export interface RootStackParamList {
-  [key: string]: undefined | { destination: Destination } | { booking: Booking } | { destinationId: string } | { destination: Destination; services: string[] };
+  [key: string]: undefined | { destination: Destination } | { booking: Booking } | { destinationId: string } | { destination: Destination; services: string[] } | { orderData?: any };
   Loading: undefined;
   Login: undefined;
   Register: undefined;
@@ -97,6 +97,10 @@ export interface RootStackParamList {
   TourServices: { destination: Destination };
   Payment: { destination: Destination; services: string[] };
   PaymentSuccess: { destination: Destination; services: string[] };
+  PaymentResult: { success: boolean; message?: string; transactionId?: string; bookingId?: string; orderId: string; destination?: Destination; services?: string[]; departureDate?: string; returnDate?: string; participants?: number; totalPrice?: number; paymentMethod?: string };
+  OrderDetails: { orderData?: any } | { destination?: Destination; services?: string[]; departureDate?: string; returnDate?: string; participants?: number; totalPrice?: number };
+  PaymentMethods: { destination?: Destination; services?: string[]; departureDate?: string; returnDate?: string; participants?: number; totalPrice?: number; orderId?: string };
+  ServicePackageDetail: { servicePackage: any };
   PersonalInfo: undefined;
   Security: undefined;
 }

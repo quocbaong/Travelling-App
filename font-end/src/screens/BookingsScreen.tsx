@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
@@ -24,11 +24,21 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const BookingsScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const { user, isGuest, userBookings, setPendingScreenAccess, removeBooking, userReviews } = useAuth();
+  const { user, isGuest, userBookings, setPendingScreenAccess, removeBooking, userReviews, refreshBookings } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'history'>('upcoming');
+
+  // Refresh bookings when screen is focused (e.g., coming back from payment)
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!isGuest && user) {
+        console.log('🔄 BookingsScreen: Screen focused, refreshing bookings...');
+        refreshBookings();
+      }
+    }, [isGuest, user, refreshBookings])
+  );
 
   useEffect(() => {
     if (isGuest) {
@@ -100,9 +110,16 @@ const BookingsScreen = () => {
   };
 
 
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    loadBookings();
+    try {
+      await refreshBookings();
+      // loadBookings will be triggered automatically when userBookings changes
+    } catch (error) {
+      console.error('Failed to refresh bookings:', error);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const getStatusColor = (status: string, departureDate: string) => {
@@ -330,7 +347,7 @@ const BookingsScreen = () => {
             <Ionicons
               name="calendar-outline"
               size={64}
-              color={COLORS.gray}
+              color="#30B7D9"
             />
             <Text style={styles.emptyTitle}>Chưa có đặt chỗ nào</Text>
             <Text style={styles.emptyText}>
@@ -374,7 +391,7 @@ const BookingsScreen = () => {
 
                     {/* Location */}
                     <View style={styles.locationContainer}>
-                      <Ionicons name="location" size={14} color={COLORS.black} />
+                      <Ionicons name="location" size={14} color="#FF0000" />
                       <Text style={styles.locationText} numberOfLines={1}>
                         {booking.destination?.country || 'Không xác định'}
                       </Text>
@@ -464,7 +481,7 @@ const BookingsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.veryLightGray,
+    backgroundColor: COLORS.white,
   },
   header: {
     paddingHorizontal: SIZES.md,
@@ -526,11 +543,22 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderRadius: SIZES.radiusMd,
     padding: SIZES.md,
-    ...SHADOWS.medium,
-    marginBottom: SIZES.md,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   bookingHeader: {
-    marginBottom: SIZES.md,
+    marginBottom: SIZES.sm + 4,
+    paddingBottom: SIZES.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
   },
   bookingId: {
     ...FONTS.bold,
@@ -541,17 +569,18 @@ const styles = StyleSheet.create({
   bookingDate: {
     ...FONTS.regular,
     fontSize: SIZES.body1,
-    color: COLORS.textSecondary,
+    color: COLORS.black,
   },
   bookingContent: {
     flexDirection: 'row',
-    marginBottom: SIZES.md,
+    marginBottom: SIZES.sm + 4,
   },
   bookingImage: {
-    width: 100,
-    height: 100,
-    borderRadius: SIZES.radius,
+    width: 110,
+    height: 110,
+    borderRadius: SIZES.radiusMd,
     marginRight: SIZES.md,
+    backgroundColor: '#F5F5F5',
   },
   bookingDetails: {
     flex: 1,
@@ -591,13 +620,16 @@ const styles = StyleSheet.create({
   locationText: {
     ...FONTS.regular,
     fontSize: SIZES.body1+1,
-    color: COLORS.textSecondary,
+    color: '#666666',
     flex: 1,
   },
   actionButtons: {
     flexDirection: 'row',
     gap: SIZES.sm,
-    marginTop: SIZES.sm,
+    marginTop: SIZES.xs,
+    paddingTop: SIZES.sm,
+    borderTopWidth: 1,
+    borderTopColor: '#F5F5F5',
   },
   cancelButton: {
     flex: 1,
@@ -679,7 +711,7 @@ const styles = StyleSheet.create({
   emptyText: {
     ...FONTS.regular,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.black,
     marginTop: SIZES.sm,
     textAlign: 'center',
     paddingHorizontal: SIZES.xl,
