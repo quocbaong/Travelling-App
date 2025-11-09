@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
+  TextInput,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -259,17 +260,46 @@ const ExploreScreen = () => {
     try {
       const isCurrentlyFavorite = userFavorites.some(fav => fav.id === destinationId);
       if (isCurrentlyFavorite) {
-        removeFavorite(destinationId);
+        await removeFavorite(destinationId);
       } else {
         // Find the destination to add
         const destination = destinations.find(dest => dest.id === destinationId);
         if (destination) {
-          addFavorite(destination);
+          // Double check to avoid duplicate
+          const alreadyExists = userFavorites.some(fav => fav.id === destinationId);
+          if (!alreadyExists) {
+            await addFavorite(destination);
+          }
         }
       }
     } catch (error) {
       console.error('Error toggling favorite:', error);
+      // Silently handle the error - the UI will update when state syncs
     }
+  };
+
+  const renderStars = (rating: number) => {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    // Hiển thị nửa sao nếu rating từ 4.4 đến 4.8
+    const hasHalfStar = rating >= 4.4 && rating < 4.9 && rating % 1 >= 0.4;
+
+    for (let i = 0; i < 5; i++) {
+      if (i < fullStars) {
+        stars.push(
+          <Ionicons key={i} name="star" size={14} color={COLORS.rating} />
+        );
+      } else if (i === fullStars && hasHalfStar) {
+        stars.push(
+          <Ionicons key={i} name="star-half" size={14} color={COLORS.rating} />
+        );
+      } else {
+        stars.push(
+          <Ionicons key={i} name="star-outline" size={14} color={COLORS.rating} />
+        );
+      }
+    }
+    return stars;
   };
 
   // Bỏ loading spinner, hiển thị nội dung ngay lập tức
@@ -278,105 +308,113 @@ const ExploreScreen = () => {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Khám phá</Text>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+        </TouchableOpacity>
+        <Text style={styles.title}>Search</Text>
+        <TouchableOpacity
+          onPress={() => setShowFilterModal(true)}
+          style={styles.filterButton}
+        >
+          <Ionicons name="options-outline" size={24} color="#0077B6" />
+        </TouchableOpacity>
       </View>
 
-      {/* 1. Thanh tìm kiếm + filter */}
+      {/* Search Input Area */}
       <View style={styles.searchSection}>
-        <SearchBar
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholder="Tìm kiếm điểm đến..."
-          onFilterPress={() => setShowFilterModal(true)}
-        />
+        <View style={styles.searchInputContainer}>
+          <TextInput
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Search destination..."
+            placeholderTextColor={COLORS.text}
+          />
+          <Ionicons name="search" size={20} color={COLORS.text} />
+        </View>
       </View>
 
-
-      {/* 3. Kết quả tìm kiếm + Các địa điểm */}
-      <View style={styles.resultsSection}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>
-            {searchQuery || currentFilters.category 
-              ? `Kết quả tìm kiếm (${filteredDestinations.length})` 
-              : 'Các địa điểm'
-            }
+      {/* Results Summary */}
+      {searchQuery && (
+        <View style={styles.resultsSummary}>
+          <Text style={styles.resultsSummaryText}>
+            We found {filteredDestinations.length} trip in '{searchQuery}'
           </Text>
         </View>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
-          {filteredDestinations.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Ionicons name="search-outline" size={64} color={COLORS.black} />
-              <Text style={styles.emptyTitle}>Không tìm thấy kết quả</Text>
-              <Text style={styles.emptyText}>
-                Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.gridContainer}>
-              {filteredDestinations.map((destination, index) => (
-              <View
+      )}
+
+      {/* Results List */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {filteredDestinations.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="search-outline" size={64} color={COLORS.text} />
+            <Text style={styles.emptyTitle}>Không tìm thấy kết quả</Text>
+            <Text style={styles.emptyText}>
+              Thử tìm kiếm với từ khóa khác hoặc thay đổi bộ lọc
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.listContainer}>
+            {filteredDestinations.map((destination) => (
+              <TouchableOpacity
                 key={destination.id}
-                style={styles.gridItem}
+                style={styles.listCard}
+                onPress={() =>
+                  navigation.navigate('DestinationDetail', { destination })
+                }
+                activeOpacity={0.9}
               >
-                <TouchableOpacity
-                  style={styles.card}
-                  onPress={() =>
-                    navigation.navigate('DestinationDetail', { destination })
-                  }
-                  activeOpacity={0.9}
-                >
-                  <Image
-                    source={{ 
-                      uri: destination.images?.[0] || 
-                      destination.imageUrl || 
-                      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
-                    }}
-                    style={styles.image}
-                  />
-                  <LinearGradient
-                    colors={['transparent', 'rgba(0,0,0,0.8)']}
-                    style={styles.gradient}
-                  />
-                  
-                  {!isGuest && (
-                    <TouchableOpacity
-                      style={styles.favoriteButton}
-                      onPress={() => handleFavoritePress(destination.id)}
-                    >
-                      <Ionicons
-                        name={userFavorites.some(fav => fav.id === destination.id) ? 'heart' : 'heart-outline'}
-                        size={20}
-                        color={userFavorites.some(fav => fav.id === destination.id) ? '#FF0000' : COLORS.white}
-                      />
-                    </TouchableOpacity>
-                  )}
-
-                  <View style={styles.cardInfo}>
-                    <Text style={styles.cardName} numberOfLines={1}>
-                      {destination.name}
+                <Image
+                  source={{ 
+                    uri: destination.images?.[0] || 
+                    destination.imageUrl || 
+                    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
+                  }}
+                  style={styles.listImage}
+                />
+                <View style={styles.listCardContent}>
+                  <Text style={styles.listCardTitle} numberOfLines={1}>
+                    {destination.name}
+                  </Text>
+                  <Text style={styles.listCardPrice}>
+                    ${destination.price}
+                  </Text>
+                  <View style={styles.listCardRating}>
+                    {renderStars(destination.rating || 4.8)}
+                    <Text style={styles.listCardRatingText}>
+                      {destination.rating || 4.8}
                     </Text>
-                    <View style={styles.cardBottom}>
-                      <View style={styles.ratingContainer}>
-                        <Ionicons name="star" size={12} color={COLORS.rating} />
-                        <Text style={styles.ratingText}>
-                          {destination.rating || 0}
-                        </Text>
-                      </View>
-                      <Text style={styles.price}>${destination.price}</Text>
-                    </View>
                   </View>
-                </TouchableOpacity>
-              </View>
-              ))}
-            </View>
-          )}
+                  <Text style={styles.listCardDescription} numberOfLines={2}>
+                    {destination.description || 
+                     `${destination.country} is a beautiful destination known for its stunning landscapes and rich culture.`}
+                  </Text>
+                </View>
+                {!isGuest && (
+                  <TouchableOpacity
+                    onPress={() => handleFavoritePress(destination.id)}
+                    style={styles.favoriteIconButton}
+                  >
+                    <Ionicons
+                      name={userFavorites.some(fav => fav.id === destination.id) ? 'heart' : 'heart-outline'}
+                      size={18}
+                      color={userFavorites.some(fav => fav.id === destination.id) ? '#FF0000' : COLORS.white}
+                    />
+                  </TouchableOpacity>
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
-          <View style={{ height: 20 }} />
-        </ScrollView>
-      </View>
+        <View style={{ height: 20 }} />
+      </ScrollView>
 
       {/* Filter Modal */}
       <FilterModal
@@ -395,128 +433,132 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: SIZES.md,
     paddingVertical: SIZES.sm,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     ...FONTS.bold,
     fontSize: SIZES.h3,
     color: COLORS.text,
-    textAlign: 'center',
   },
-  subtitle: {
-    ...FONTS.regular,
-    fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
-    marginTop: 4,
-  },
-  searchSection: {
-    paddingHorizontal: SIZES.md,
-    marginVertical: SIZES.md,
-  },
-  categoriesSection: {
-    marginBottom: SIZES.lg,
-    backgroundColor: COLORS.white,
-  },
-  resultsSection: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-  },
-  sectionHeader: {
-    paddingHorizontal: SIZES.md,
-    paddingTop: SIZES.md,
-    paddingBottom: SIZES.sm,
-  },
-  sectionTitle: {
-    ...FONTS.bold,
-    fontSize: SIZES.h2,
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  sectionSubtitle: {
-    ...FONTS.regular,
-    fontSize: SIZES.body3,
-    color: COLORS.gray,
-    marginTop: 2,
-  },
-  categoriesContainer: {
-    paddingHorizontal: SIZES.md,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: SIZES.md,
-    paddingBottom: SIZES.xl,
-  },
-  gridItem: {
-    width: '48%',
-    marginBottom: SIZES.lg,
-    marginHorizontal: '1%',
-  },
-  card: {
-    height: 240,
-    borderRadius: SIZES.radiusLg,
-    overflow: 'hidden',
-    backgroundColor: COLORS.white,
-    ...SHADOWS.medium,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  gradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: '60%',
-  },
-  favoriteButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.3)',
+  filterButton: {
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cardInfo: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: SIZES.sm,
+  searchSection: {
+    paddingHorizontal: SIZES.md,
+    marginTop: SIZES.sm,
+    marginBottom: SIZES.md,
   },
-  cardName: {
-    ...FONTS.semiBold,
-    fontSize: SIZES.body2,
-    color: COLORS.white,
-    marginBottom: 4,
-  },
-  cardBottom: {
+  searchInputContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    borderRadius: SIZES.radiusMd,
+    paddingHorizontal: SIZES.md,
+    minHeight: 48,
   },
-  ratingContainer: {
+  searchInput: {
+    ...FONTS.regular,
+    fontSize: SIZES.body1,
+    color: COLORS.text,
+    flex: 1,
+    paddingVertical: SIZES.sm,
+    paddingHorizontal: 0,
+    marginRight: SIZES.xs,
+  },
+  resultsSummary: {
+    paddingHorizontal: SIZES.md,
+    paddingBottom: SIZES.sm,
+  },
+  resultsSummaryText: {
+    ...FONTS.bold,
+    fontSize: SIZES.body1,
+    color: COLORS.text,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: SIZES.md,
+    paddingBottom: SIZES.xl,
+  },
+  listContainer: {
+    gap: SIZES.md,
+  },
+  listCard: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.white,
+    borderRadius: SIZES.radiusMd,
+    overflow: 'visible',
+    marginBottom: SIZES.md,
+    position: 'relative',
+    ...SHADOWS.medium,
+  },
+  listImage: {
+    width: 120,
+    height: 120,
+    borderRadius: SIZES.radiusMd,
+  },
+  listCardContent: {
+    flex: 1,
+    padding: SIZES.md,
+    paddingRight: SIZES.xl,
+    justifyContent: 'space-between',
+  },
+  listCardTitle: {
+    ...FONTS.bold,
+    fontSize: SIZES.h5,
+    color: COLORS.text,
+    marginBottom: SIZES.xs,
+  },
+  listCardPrice: {
+    ...FONTS.bold,
+    fontSize: SIZES.body1,
+    color: COLORS.text,
+    marginTop: SIZES.xs,
+    marginBottom: SIZES.xs,
+  },
+  listCardRating: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
+    gap: 4,
+    marginTop: SIZES.xs,
+    marginBottom: SIZES.xs,
   },
-  ratingText: {
+  listCardRatingText: {
     ...FONTS.medium,
     fontSize: SIZES.body3,
-    color: COLORS.white,
+    color: COLORS.text,
+    marginLeft: 4,
   },
-  price: {
-    ...FONTS.bold,
-    fontSize: SIZES.body2,
-    color: COLORS.white,
+  listCardDescription: {
+    ...FONTS.regular,
+    fontSize: SIZES.body3,
+    color: COLORS.text,
+    lineHeight: 18,
+  },
+  favoriteIconButton: {
+    position: 'absolute',
+    top: SIZES.sm,
+    right: SIZES.sm,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 16,
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
   },
   emptyState: {
     flex: 1,
