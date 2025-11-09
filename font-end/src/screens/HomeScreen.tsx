@@ -120,16 +120,21 @@ const HomeScreen = () => {
     try {
       const isCurrentlyFavorite = userFavorites.some(fav => fav.id === destinationId);
       if (isCurrentlyFavorite) {
-        removeFavorite(destinationId);
+        await removeFavorite(destinationId);
       } else {
         // Find the destination to add
         const destination = [...featuredDestinations, ...popularDestinations].find(dest => dest.id === destinationId);
         if (destination) {
-          addFavorite(destination);
+          // Double check to avoid duplicate
+          const alreadyExists = userFavorites.some(fav => fav.id === destinationId);
+          if (!alreadyExists) {
+            await addFavorite(destination);
+          }
         }
       }
     } catch (error) {
       console.error('Error toggling favorite:', error);
+      // Silently handle the error - the UI will update when state syncs
     }
   };
 
