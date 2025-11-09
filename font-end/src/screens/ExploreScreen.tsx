@@ -308,19 +308,7 @@ const ExploreScreen = () => {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color={COLORS.text} />
-        </TouchableOpacity>
         <Text style={styles.title}>Khám phá</Text>
-        <TouchableOpacity
-          onPress={() => setShowFilterModal(true)}
-          style={styles.filterButton}
-        >
-          <Ionicons name="options-outline" size={24} color="#0077B6" />
-        </TouchableOpacity>
       </View>
 
       {/* Search Input Area */}
@@ -330,18 +318,24 @@ const ExploreScreen = () => {
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Search destination..."
+            placeholder="Tìm kiếm điểm đến..."
             placeholderTextColor={COLORS.text}
           />
           <Ionicons name="search" size={20} color={COLORS.text} />
         </View>
+        <TouchableOpacity
+          onPress={() => setShowFilterModal(true)}
+          style={styles.filterIconButton}
+        >
+          <Ionicons name="options-outline" size={24} color="#0077B6" />
+        </TouchableOpacity>
       </View>
 
       {/* Results Summary */}
       {searchQuery && (
         <View style={styles.resultsSummary}>
           <Text style={styles.resultsSummaryText}>
-            We found {filteredDestinations.length} trip in '{searchQuery}'
+            Tìm thấy {filteredDestinations.length} chuyến đi cho '{searchQuery}'
           </Text>
         </View>
       )}
@@ -379,22 +373,30 @@ const ExploreScreen = () => {
                   style={styles.listImage}
                 />
                 <View style={styles.listCardContent}>
-                  <Text style={styles.listCardTitle} numberOfLines={1}>
+                  <Text style={styles.listCardTitle} numberOfLines={2}>
                     {destination.name}
                   </Text>
-                  <Text style={styles.listCardPrice}>
-                    ${destination.price}
-                  </Text>
-                  <View style={styles.listCardRating}>
-                    {renderStars(destination.rating || 4.8)}
-                    <Text style={styles.listCardRatingText}>
-                      {destination.rating || 4.8}
+                  <View style={styles.listCardLocationRow}>
+                    <Ionicons name="location" size={16} color="#FF0000" />
+                    <Text style={styles.listCardLocation}>
+                      {destination.country}
                     </Text>
                   </View>
-                  <Text style={styles.listCardDescription} numberOfLines={2}>
-                    {destination.description || 
-                     `${destination.country} is a beautiful destination known for its stunning landscapes and rich culture.`}
-                  </Text>
+                  <View style={styles.listCardRatingRow}>
+                    <View style={styles.listCardRating}>
+                      {renderStars(destination.rating || 4.8)}
+                    </View>
+                    <Text style={styles.listCardReviewsText}>
+                      {destination.reviews || 100} reviews
+                    </Text>
+                  </View>
+                  {destination.duration && (
+                    <View style={styles.listCardDurationTag}>
+                      <Text style={styles.listCardDurationText}>
+                        {destination.duration}
+                      </Text>
+                    </View>
+                  )}
                 </View>
                 {!isGuest && (
                   <TouchableOpacity
@@ -433,35 +435,26 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: SIZES.md,
     paddingVertical: SIZES.sm,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
     alignItems: 'center',
-    justifyContent: 'center',
   },
   title: {
     ...FONTS.bold,
     fontSize: SIZES.h3,
     color: COLORS.text,
-  },
-  filterButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+    textAlign: 'center',
   },
   searchSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: SIZES.md,
     marginTop: SIZES.sm,
     marginBottom: SIZES.md,
+    gap: SIZES.sm,
   },
   searchInputContainer: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -469,6 +462,12 @@ const styles = StyleSheet.create({
     borderRadius: SIZES.radiusMd,
     paddingHorizontal: SIZES.md,
     minHeight: 48,
+  },
+  filterIconButton: {
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   searchInput: {
     ...FONTS.regular,
@@ -503,44 +502,68 @@ const styles = StyleSheet.create({
     overflow: 'visible',
     marginBottom: SIZES.md,
     position: 'relative',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    alignItems: 'center',
     ...SHADOWS.medium,
   },
   listImage: {
     width: 120,
     height: 120,
     borderRadius: SIZES.radiusMd,
+    marginLeft: SIZES.sm,
+    marginRight: SIZES.sm,
   },
   listCardContent: {
     flex: 1,
     padding: SIZES.md,
     paddingRight: SIZES.xl,
-    justifyContent: 'space-between',
   },
   listCardTitle: {
     ...FONTS.bold,
     fontSize: SIZES.h5,
     color: COLORS.text,
-    marginBottom: SIZES.xs,
+    marginBottom: SIZES.sm,
+    lineHeight: 22,
   },
-  listCardPrice: {
-    ...FONTS.bold,
-    fontSize: SIZES.body1,
-    color: COLORS.text,
-    marginTop: SIZES.xs,
+  listCardRatingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SIZES.xs,
     marginBottom: SIZES.xs,
   },
   listCardRating: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  listCardReviewsText: {
+    ...FONTS.regular,
+    fontSize: SIZES.body3,
+    color: COLORS.textSecondary,
+  },
+  listCardLocationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 4,
-    marginTop: SIZES.xs,
     marginBottom: SIZES.xs,
   },
-  listCardRatingText: {
+  listCardLocation: {
+    ...FONTS.regular,
+    fontSize: SIZES.body3,
+    color: COLORS.text,
+  },
+  listCardDurationTag: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: SIZES.radiusSm,
+    paddingHorizontal: SIZES.sm,
+    paddingVertical: 4,
+    alignSelf: 'flex-start',
+    marginTop: SIZES.xs,
+  },
+  listCardDurationText: {
     ...FONTS.medium,
     fontSize: SIZES.body3,
     color: COLORS.text,
-    marginLeft: 4,
   },
   listCardDescription: {
     ...FONTS.regular,
@@ -603,5 +626,7 @@ const styles = StyleSheet.create({
 });
 
 export default ExploreScreen;
+
+
 
 
