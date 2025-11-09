@@ -22,9 +22,15 @@ class UserService {
     try {
       await HttpClient.post(`${API_CONFIG.ENDPOINTS.FAVORITES}?userId=${userId}&destinationId=${destinationId}`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
+      // If destination is already in favorites, treat it as success
+      const errorMessage = error?.message || '';
+      if (errorMessage.includes('already in favorites') || errorMessage.includes('already exists')) {
+        console.log('Destination already in favorites - treating as success');
+        return true;
+      }
       console.error('Failed to add to favorites:', error);
-      return false;
+      throw error; // Re-throw other errors
     }
   }
 

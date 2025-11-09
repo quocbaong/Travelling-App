@@ -294,19 +294,46 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         await userService.addToFavorites(user.id, destination.id);
         // Update UI only after successful backend call
-        setUserFavorites(prev => [...prev, destination]);
+        setUserFavorites(prev => {
+          // Double check to avoid duplicate
+          if (prev.some(fav => fav.id === destination.id)) {
+            return prev;
+          }
+          return [...prev, destination];
+        });
         // Also update user.favorites
         setUser(prev => prev ? {
           ...prev,
           favorites: [...(prev.favorites || []), destination.id]
         } : null);
-      } catch (error) {
-        console.error('Failed to add favorite to backend:', error);
-        // Don't update UI if backend fails
+      } catch (error: any) {
+        // Check if error is "already in favorites" - this is OK, just update UI
+        const errorMessage = error?.message || '';
+        if (errorMessage.includes('already in favorites') || errorMessage.includes('already exists')) {
+          // Destination is already in backend, just update UI to sync
+          setUserFavorites(prev => {
+            if (prev.some(fav => fav.id === destination.id)) {
+              return prev;
+            }
+            return [...prev, destination];
+          });
+          setUser(prev => prev ? {
+            ...prev,
+            favorites: [...(prev.favorites || []), destination.id]
+          } : null);
+        } else {
+          console.error('Failed to add favorite to backend:', error);
+          // Don't update UI if backend fails with other errors
+        }
       }
     } else {
       // Update UI immediately for guest users
-      setUserFavorites(prev => [...prev, destination]);
+      setUserFavorites(prev => {
+        if (prev.some(fav => fav.id === destination.id)) {
+          return prev;
+        }
+        return [...prev, destination];
+      });
     }
   };
 

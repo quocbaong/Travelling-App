@@ -314,7 +314,7 @@ const ExploreScreen = () => {
         >
           <Ionicons name="arrow-back" size={24} color={COLORS.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Search</Text>
+        <Text style={styles.title}>Khám phá</Text>
         <TouchableOpacity
           onPress={() => setShowFilterModal(true)}
           style={styles.filterButton}

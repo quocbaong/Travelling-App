@@ -135,9 +135,12 @@ export class HttpClient {
       return data;
     } catch (error: any) {
       // Không log lỗi nếu endpoint chưa được implement (404 hoặc "No static resource")
-      // Để tránh làm phiền người dùng khi backend chưa có endpoint
+      // Hoặc nếu là lỗi "already in favorites" (được xử lý ở service layer)
       const errorMessage = error?.message || '';
-      if (!errorMessage.includes('No static resource') && !errorMessage.includes('404')) {
+      if (!errorMessage.includes('No static resource') && 
+          !errorMessage.includes('404') &&
+          !errorMessage.includes('already in favorites') &&
+          !errorMessage.includes('already exists')) {
         console.error('API Request failed:', error);
       }
       throw error;
