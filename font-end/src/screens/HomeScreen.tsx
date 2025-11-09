@@ -17,12 +17,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { PLACEHOLDER_IMAGES, CATEGORY_ICONS } from '../constants/images';
 import { RootStackParamList, Destination, DestinationCategory } from '../types';
-import { destinationService, userService } from '../api';
+import { destinationService, userService, useDestinations } from '../api';
 import { DestinationCard, CategoryCard, Loading, NotificationModal } from '../components';
 import { useAuth } from '../contexts/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 
 const HomeScreen = () => {
   const navigation = useNavigation<any>();
+  const queryClient = useQueryClient();
   const { 
     user, 
     isGuest, 
@@ -36,6 +38,10 @@ const HomeScreen = () => {
     deleteNotification,
     loadNotifications,
   } = useAuth();
+  
+  // Sử dụng React Query hook để lấy destinations với caching
+  const { data: allDestinations = [], isLoading: destinationsLoading, refetch: refetchDestinations } = useDestinations();
+  
   const [featuredDestinations, setFeaturedDestinations] = useState<Destination[]>([]);
   const [popularDestinations, setPopularDestinations] = useState<Destination[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,64 +57,54 @@ const HomeScreen = () => {
     'Luxury',
   ];
 
-  const loadData = async () => {
-    try {
-      // Lấy tất cả destinations để filter theo rating
-      const allDestinations = await destinationService.getAllDestinations();
-      
+  // Process destinations data - giữ nguyên logic filter hiện tại
+  useEffect(() => {
+    if (allDestinations && allDestinations.length > 0) {
       console.log(`📊 LoadData - Total destinations: ${allDestinations?.length || 0}`);
       console.log(`📊 LoadData - Sample destinations:`, allDestinations?.slice(0, 3).map(d => ({ name: d.name, category: d.category })));
       
-      if (allDestinations && allDestinations.length > 0) {
-        // Destinations nổi bật: rating >= 4.8, hiển thị 4-5 cái
-        const featured = allDestinations
-          .filter(dest => dest.rating >= 4.8)
-          .sort((a, b) => b.rating - a.rating)
-          .slice(0, 5);
-        
-        setFeaturedDestinations(featured);
-        
-        // Destinations phổ biến: rating >= 4.6, loại bỏ những cái đã hiển thị ở nổi bật, tối đa 8 cái
-        const featuredIds = featured.map(dest => dest.id);
-        const popular = allDestinations
-          .filter(dest => dest.rating >= 4.6 && !featuredIds.includes(dest.id))
-          .sort((a, b) => b.rating - a.rating)
-          .slice(0, 8);
-        
-        setPopularDestinations(popular);
-      } else {
-        console.log('No destinations loaded from backend');
-        setFeaturedDestinations([]);
-        setPopularDestinations([]);
-      }
+      // Destinations nổi bật: rating >= 4.8, hiển thị 4-5 cái
+      const featured = allDestinations
+        .filter(dest => dest.rating >= 4.8)
+        .sort((a, b) => b.rating - a.rating)
+        .slice(0, 5);
       
-    } catch (error) {
-      console.error('Error loading data:', error);
-      // Set empty arrays on error
+      setFeaturedDestinations(featured);
+      
+      // Destinations phổ biến: rating >= 4.6, loại bỏ những cái đã hiển thị ở nổi bật, tối đa 8 cái
+      const featuredIds = featured.map(dest => dest.id);
+      const popular = allDestinations
+        .filter(dest => dest.rating >= 4.6 && !featuredIds.includes(dest.id))
+        .sort((a, b) => b.rating - a.rating)
+        .slice(0, 8);
+      
+      setPopularDestinations(popular);
+      setLoading(false);
+    } else if (!destinationsLoading) {
+      console.log('No destinations loaded from backend');
       setFeaturedDestinations([]);
       setPopularDestinations([]);
-    } finally {
       setLoading(false);
-      setRefreshing(false);
     }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
+  }, [allDestinations, destinationsLoading]);
 
   // Refresh data when screen comes into focus (e.g., after submitting a review)
   useFocusEffect(
     React.useCallback(() => {
-      if (!loading) {
-        loadData();
+      // React Query sẽ tự động refetch nếu data stale
+      // Chỉ refetch nếu cần thiết
+      if (!destinationsLoading) {
+        refetchDestinations();
       }
-    }, [loading])
+    }, [destinationsLoading, refetchDestinations])
   );
 
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    loadData();
+    // Invalidate cache và refetch
+    await queryClient.invalidateQueries({ queryKey: ['destinations'] });
+    await refetchDestinations();
+    setRefreshing(false);
   };
 
   const handleFavoritePress = async (destinationId: string) => {
@@ -146,12 +142,12 @@ const HomeScreen = () => {
       // Nếu đã chọn danh mục này rồi, bỏ chọn - load lại data theo logic rating
       console.log(`🔄 Deselecting category: ${category}`);
       setSelectedCategory(null);
-      await loadData();
+      // Data sẽ được process lại trong useEffect khi allDestinations thay đổi
     } else {
       // Chọn danh mục mới - filter theo category và áp dụng logic rating
+      // Sử dụng data từ cache (allDestinations) thay vì fetch lại
       console.log(`✅ Selecting new category: ${category}`);
       setSelectedCategory(category);
-      const allDestinations = await destinationService.getAllDestinations();
       const featuredIds = featuredDestinations.map(dest => dest.id);
       
       console.log(`📊 All destinations sample:`, allDestinations.slice(0, 3).map(d => ({ name: d.name, category: d.category })));
@@ -317,7 +313,7 @@ const HomeScreen = () => {
               <TouchableOpacity
                 onPress={() => {
                   setSelectedCategory(null);
-                  loadData(); // Sử dụng loadData để áp dụng logic rating
+                  // Data sẽ được process lại trong useEffect khi selectedCategory thay đổi
                 }}
               >
                 <Text style={styles.clearFilter}>Xóa lọc</Text>
@@ -516,7 +512,7 @@ const styles = StyleSheet.create({
   seeAll: {
     ...FONTS.semiBold,
     fontSize: SIZES.body2,
-    color: COLORS.text,
+    color: '#2397b6',
   },
   clearFilter: {
     ...FONTS.semiBold,

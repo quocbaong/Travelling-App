@@ -17,16 +17,22 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { RootStackParamList, Destination, DestinationCategory, SearchFilters } from '../types';
-import { destinationService, userService } from '../api';
+import { destinationService, userService, useDestinations } from '../api';
 import { SearchBar, Loading, FilterModal } from '../components';
 import { FilterOptions } from '../components/FilterModal';
 import { useAuth } from '../contexts/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const ExploreScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const queryClient = useQueryClient();
   const { isGuest, userFavorites, addFavorite, removeFavorite } = useAuth();
+  
+  // Sử dụng React Query hook để lấy destinations với caching
+  const { data: allDestinations = [], isLoading: destinationsLoading, refetch: refetchDestinations } = useDestinations();
+  
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [filteredDestinations, setFilteredDestinations] = useState<Destination[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,21 +47,27 @@ const ExploreScreen = () => {
   });
 
 
+  // Update destinations từ React Query cache
   useEffect(() => {
-    loadData();
-  }, []);
+    if (allDestinations && allDestinations.length > 0) {
+      setDestinations(allDestinations);
+      setLoading(false);
+    } else if (!destinationsLoading) {
+      setDestinations([]);
+      setFilteredDestinations([]);
+      setLoading(false);
+    }
+  }, [allDestinations, destinationsLoading]);
 
   // Reload data when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      loadData();
-    }, [])
+      // React Query sẽ tự động refetch nếu data stale
+      if (!destinationsLoading) {
+        refetchDestinations();
+      }
+    }, [destinationsLoading, refetchDestinations])
   );
-
-  useEffect(() => {
-    // Reload data khi trạng thái đăng nhập thay đổi
-    loadData();
-  }, [isGuest]);
 
   useEffect(() => {
     if (destinations.length > 0) {
@@ -71,14 +83,11 @@ const ExploreScreen = () => {
     }
   }, [destinations]);
 
-  const loadData = async () => {
-    try {
-      const allDestinations = await destinationService.getAllDestinations();
-      // Hiển thị 10 destinations đầu tiên
-      const firstTen = allDestinations?.slice(0, 10) || [];
-      
-      // Debug logging
-      console.log(`📊 ExploreScreen - Loaded ${allDestinations?.length || 0} destinations`);
+  // Debug logging khi destinations thay đổi
+  useEffect(() => {
+    if (allDestinations && allDestinations.length > 0) {
+      const firstTen = allDestinations.slice(0, 10);
+      console.log(`📊 ExploreScreen - Loaded ${allDestinations.length} destinations`);
       console.log(`📊 ExploreScreen - Sample destinations:`, firstTen.slice(0, 3).map(d => ({
         name: d.name,
         category: d.category,
@@ -87,26 +96,19 @@ const ExploreScreen = () => {
       })));
       
       // Debug: Show all unique categories
-      const allCategories = [...new Set(allDestinations?.map(dest => dest.category) || [])];
+      const allCategories = [...new Set(allDestinations.map(dest => dest.category))];
       console.log(`📊 ExploreScreen - All categories in data:`, allCategories);
       
       // Debug: Show sample destinations with categories
       console.log(`📊 ExploreScreen - Sample destinations with categories:`, 
-        allDestinations?.slice(0, 5).map(d => ({ 
+        allDestinations.slice(0, 5).map(d => ({ 
           name: d.name, 
           category: d.category,
           categoryType: typeof d.category
         }))
       );
-      
-      setDestinations(allDestinations);
-      setFilteredDestinations(firstTen);
-    } catch (error) {
-      console.error('Error loading data:', error);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [allDestinations]);
 
 
   const applyAdvancedFilters = (filters: FilterOptions) => {
@@ -125,13 +127,30 @@ const ExploreScreen = () => {
     
     let filtered = [...destinations];
 
-    // Nếu không có filter nào, hiển thị 10 đầu tiên
-    if (!searchQuery && !effectiveCategory && 
-        filters.countries.length === 0 && 
-        (filters.ratingRange.min === 0 && filters.ratingRange.max === 5) && 
-        filters.priceRange.min === 0 && filters.priceRange.max === 9999) {
-      console.log(`📊 No filters active, showing first 10 destinations`);
-      setFilteredDestinations(destinations.slice(0, 10));
+    // Nếu không có filter nào, hiển thị 10 destinations có rating cao nhất
+    const hasNoFilters = !searchQuery && 
+                         !effectiveCategory && 
+                         filters.countries.length === 0 && 
+                         filters.ratingRange.min === 0 && 
+                         filters.ratingRange.max === 5 && 
+                         filters.priceRange.min === 0;
+    
+    console.log(`🔍 Checking no filters condition:`, {
+      hasNoFilters,
+      searchQuery,
+      effectiveCategory,
+      countriesCount: filters.countries.length,
+      ratingRange: filters.ratingRange,
+      priceRange: filters.priceRange
+    });
+    
+    if (hasNoFilters) {
+      console.log(`📊 No filters active, showing top 10 rated destinations`);
+      const topRated = [...destinations]
+        .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+        .slice(0, 10);
+      console.log(`📊 Top 10 rated destinations count: ${topRated.length}`);
+      setFilteredDestinations(topRated);
       return;
     }
 
@@ -186,8 +205,9 @@ const ExploreScreen = () => {
     // Advanced filters - chỉ áp dụng khi có filter thực sự
     console.log(`📊 Before advanced filters: ${filtered.length} destinations`);
     
-    // Price filter - chỉ áp dụng khi không phải default range
-    if (filters.priceRange.min !== 0 || filters.priceRange.max !== 9999) {
+    // Price filter - chỉ áp dụng khi có filter thực sự (không phải default)
+    // Default max price là 7000000, nên chỉ filter khi user thay đổi
+    if (filters.priceRange.min > 0 || (filters.priceRange.max < 7000000 && filters.priceRange.max !== 9999)) {
       console.log(`📊 Applying price filter: ${filters.priceRange.min} - ${filters.priceRange.max}`);
       filtered = filtered.filter(dest => 
         dest.price >= filters.priceRange.min && dest.price <= filters.priceRange.max
@@ -234,7 +254,10 @@ const ExploreScreen = () => {
       ratingRange: { min: 0, max: 5 },
       category: null,
     });
-    setFilteredDestinations(destinations.slice(0, 10));
+    const topRated = [...destinations]
+      .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+      .slice(0, 10);
+    setFilteredDestinations(topRated);
   };
 
 
@@ -327,7 +350,7 @@ const ExploreScreen = () => {
           onPress={() => setShowFilterModal(true)}
           style={styles.filterIconButton}
         >
-          <Ionicons name="options-outline" size={24} color="#0077B6" />
+          <Ionicons name="options-outline" size={35} color="#0077B6" />
         </TouchableOpacity>
       </View>
 
@@ -339,6 +362,30 @@ const ExploreScreen = () => {
           </Text>
         </View>
       )}
+
+      {/* Fixed Title - chỉ hiển thị khi không có searchQuery */}
+      {!searchQuery && filteredDestinations.length > 0 && (() => {
+        // Kiểm tra xem có filter nào đang được áp dụng không
+        const hasActiveFilters = currentFilters.category !== null ||
+                                 currentFilters.countries.length > 0 ||
+                                 currentFilters.ratingRange.min > 0 ||
+                                 currentFilters.ratingRange.max < 5 ||
+                                 currentFilters.priceRange.min > 0 ||
+                                 (currentFilters.priceRange.max < 7000000 && currentFilters.priceRange.max !== 9999);
+        
+        return (
+          <View style={styles.resultsTitleContainer}>
+            <Text style={styles.resultsTitle}>
+              Danh sách điểm đến
+            </Text>
+            {hasActiveFilters && (
+              <Text style={styles.resultsCount}>
+                ({filteredDestinations.length})
+              </Text>
+            )}
+          </View>
+        );
+      })()}
 
       {/* Results List */}
       <ScrollView
@@ -450,7 +497,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: SIZES.md,
     marginTop: SIZES.sm,
-    marginBottom: SIZES.md,
+    marginBottom: SIZES.md+5,
     gap: SIZES.sm,
   },
   searchInputContainer: {
@@ -484,16 +531,35 @@ const styles = StyleSheet.create({
   },
   resultsSummaryText: {
     ...FONTS.bold,
-    fontSize: SIZES.body1,
+    fontSize: SIZES.h4,
     color: COLORS.text,
+  },
+  resultsTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SIZES.md,
+    paddingTop: SIZES.xs,
+    paddingBottom: SIZES.sm,
+    marginBottom: SIZES.xs,
+  },
+  resultsTitle: {
+    ...FONTS.bold,
+    fontSize: SIZES.h4,
+    color: COLORS.text,
+  },
+  resultsCount: {
+    ...FONTS.medium,
+    fontSize: SIZES.h5,
+    color: COLORS.textSecondary,
+    marginLeft: SIZES.xs,
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: SIZES.md,
     paddingBottom: SIZES.xl,
   },
   listContainer: {
-    gap: SIZES.md,
+    gap: SIZES.sm-7,
+    paddingHorizontal: SIZES.md+3,
   },
   listCard: {
     flexDirection: 'row',
@@ -511,8 +577,8 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: SIZES.radiusMd,
-    marginLeft: SIZES.sm,
-    marginRight: SIZES.sm,
+    margin: SIZES.md-5,
+
   },
   listCardContent: {
     flex: 1,

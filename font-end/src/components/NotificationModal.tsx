@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   ScrollView,
   Dimensions,
   Pressable,
+  Animated,
+  PanResponder,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -33,7 +35,143 @@ interface NotificationModalProps {
   onDeleteNotification?: (notificationId: string) => void;
 }
 
-const { height } = Dimensions.get('window');
+const { height, width } = Dimensions.get('window');
+
+// Swipeable Notification Card Component
+interface SwipeableNotificationCardProps {
+  notification: NotificationItem;
+  index: number;
+  totalNotifications: number;
+  onPress: (notificationId: string) => void;
+  onDelete: (notificationId: string) => void;
+  getIconName: (type: string) => string;
+  getIconColor: (type: string) => string;
+  getTimeAgo: (createdAt: string) => string;
+}
+
+const SwipeableNotificationCard: React.FC<SwipeableNotificationCardProps> = ({
+  notification,
+  index,
+  totalNotifications,
+  onPress,
+  onDelete,
+  getIconName,
+  getIconColor,
+  getTimeAgo,
+}) => {
+  const translateX = useRef(new Animated.Value(0)).current;
+  const deleteThreshold = 100; // Swipe 100px to the left to delete
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Only respond to horizontal swipes
+        return Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
+      },
+      onPanResponderGrant: () => {
+        translateX.setOffset((translateX as any)._value || 0);
+        translateX.setValue(0);
+      },
+      onPanResponderMove: (_, gestureState) => {
+        // Only allow swiping left (negative dx)
+        if (gestureState.dx < 0) {
+          translateX.setValue(gestureState.dx);
+        } else {
+          translateX.setValue(0);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        translateX.flattenOffset();
+        const currentValue = (translateX as any)._value || 0;
+        
+        // If swiped past threshold, delete automatically
+        if (currentValue < -deleteThreshold) {
+          Animated.timing(translateX, {
+            toValue: -width,
+            duration: 200,
+            useNativeDriver: true,
+          }).start(() => {
+            onDelete(notification.id);
+          });
+        } else {
+          // Otherwise, snap back
+          Animated.spring(translateX, {
+            toValue: 0,
+            useNativeDriver: true,
+            tension: 50,
+            friction: 7,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
+  return (
+    <View style={[
+      styles.swipeableContainer,
+      index === totalNotifications - 1 && styles.lastCard,
+    ]}>
+      {/* Notification Card */}
+      <Animated.View
+        style={[
+          styles.notificationCard,
+          !notification.read && styles.unreadCard,
+          {
+            transform: [{ translateX }],
+          },
+        ]}
+        {...panResponder.panHandlers}
+      >
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => onPress(notification.id)}
+        >
+          <View style={styles.cardContent}>
+            <View style={[
+              styles.notificationIconContainer,
+              !notification.read && styles.unreadIconContainer
+            ]}>
+              <Ionicons
+                name={getIconName(notification.type) as any}
+                size={24}
+                color={getIconColor(notification.type)}
+              />
+              {!notification.read && (
+                <View style={styles.unreadIndicator} />
+              )}
+            </View>
+            <View style={styles.notificationContent}>
+              <View style={styles.notificationHeader}>
+                <Text 
+                  style={[
+                    styles.notificationTitle,
+                    !notification.read && styles.unreadTitle
+                  ]}
+                  numberOfLines={2}
+                >
+                  {notification.title}
+                </Text>
+                <Text style={styles.notificationTime}>
+                  {getTimeAgo(notification.createdAt)}
+                </Text>
+              </View>
+              <Text 
+                style={styles.notificationMessage}
+                numberOfLines={2}
+              >
+                {notification.message}
+              </Text>
+            </View>
+            {!notification.read && (
+              <View style={styles.unreadDot} />
+            )}
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
+    </View>
+  );
+};
 
 export const NotificationModal: React.FC<NotificationModalProps> = ({
   visible,
@@ -133,13 +271,11 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
           >
             {notifications.length === 0 ? (
               <View style={styles.emptyState}>
-                <View style={styles.emptyIconContainer}>
-                  <Ionicons
-                    name="notifications-outline"
-                    size={80}
-                    color={COLORS.gray}
-                  />
-                </View>
+                <Ionicons
+                  name="notifications-outline"
+                  size={80}
+                  color="#64B5F6"
+                />
                 <Text style={styles.emptyTitle}>Không có thông báo nào</Text>
                 <Text style={styles.emptyText}>
                   Bạn sẽ nhận được thông báo mới ở đây
@@ -147,61 +283,19 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
               </View>
             ) : (
               <View style={styles.notificationsList}>
-                {notifications.map((notification, index) => {
-                  return (
-                    <TouchableOpacity
-                      key={notification.id}
-                      style={[
-                        styles.notificationCard,
-                        !notification.read && styles.unreadCard,
-                        index === notifications.length - 1 && styles.lastCard,
-                      ]}
-                      activeOpacity={0.7}
-                      onPress={() => handleNotificationPress(notification.id)}
-                    >
-                      <View style={styles.cardContent}>
-                        <View style={[
-                          styles.notificationIconContainer,
-                          !notification.read && styles.unreadIconContainer
-                        ]}>
-                          <Ionicons
-                            name={getIconName(notification.type)}
-                            size={24}
-                            color={getIconColor(notification.type)}
-                          />
-                          {!notification.read && (
-                            <View style={styles.unreadIndicator} />
-                          )}
-                        </View>
-                        <View style={styles.notificationContent}>
-                          <View style={styles.notificationHeader}>
-                            <Text 
-                              style={[
-                                styles.notificationTitle,
-                                !notification.read && styles.unreadTitle
-                              ]}
-                              numberOfLines={2}
-                            >
-                              {notification.title}
-                            </Text>
-                            <Text style={styles.notificationTime}>
-                              {getTimeAgo(notification.createdAt)}
-                            </Text>
-                          </View>
-                          <Text 
-                            style={styles.notificationMessage}
-                            numberOfLines={2}
-                          >
-                            {notification.message}
-                          </Text>
-                        </View>
-                        {!notification.read && (
-                          <View style={styles.unreadDot} />
-                        )}
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
+                {notifications.map((notification, index) => (
+                  <SwipeableNotificationCard
+                    key={notification.id}
+                    notification={notification}
+                    index={index}
+                    totalNotifications={notifications.length}
+                    onPress={handleNotificationPress}
+                    onDelete={handleDeleteNotification}
+                    getIconName={getIconName}
+                    getIconColor={getIconColor}
+                    getTimeAgo={getTimeAgo}
+                  />
+                ))}
               </View>
             )}
           </ScrollView>
@@ -213,7 +307,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
                 onPress={handleMarkAllAsRead}
                 activeOpacity={0.7}
               >
-                <Ionicons name="checkmark-done" size={16} color={COLORS.text} style={{ marginRight: SIZES.xs }} />
+                <Ionicons name="checkmark-done" size={18} color={COLORS.white} style={{ marginRight: SIZES.xs }} />
                 <Text style={styles.markAllText}>Đánh dấu tất cả đã đọc</Text>
               </TouchableOpacity>
             </View>
@@ -281,20 +375,11 @@ const styles = StyleSheet.create({
     paddingVertical: SIZES.xxl * 2,
     minHeight: height * 0.5,
   },
-  emptyIconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: COLORS.backgroundSecondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: SIZES.lg,
-  },
   emptyTitle: {
     ...FONTS.bold,
     fontSize: SIZES.h4,
     color: COLORS.text,
-    marginTop: SIZES.md,
+    marginTop: SIZES.lg,
     marginBottom: SIZES.sm,
   },
   emptyText: {
@@ -308,11 +393,15 @@ const styles = StyleSheet.create({
   notificationsList: {
     paddingBottom: SIZES.xs,
   },
+  swipeableContainer: {
+    marginBottom: SIZES.md,
+    position: 'relative',
+    overflow: 'hidden',
+  },
   notificationCard: {
     backgroundColor: COLORS.white,
     borderRadius: SIZES.radiusLg,
     padding: SIZES.md,
-    marginBottom: SIZES.md,
     ...SHADOWS.medium,
     borderWidth: 1,
     borderColor: COLORS.lightGray,
@@ -401,20 +490,23 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: COLORS.lightGray,
     backgroundColor: COLORS.white,
+    alignItems: 'center',
   },
   markAllButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: SIZES.sm,
-    paddingHorizontal: SIZES.md,
-    backgroundColor: COLORS.backgroundSecondary,
-    borderRadius: SIZES.radius,
+    paddingVertical: SIZES.sm+3,
+    paddingHorizontal: SIZES.lg,
+    backgroundColor: COLORS.primary,
+    borderRadius: SIZES.radiusMd,
+    minWidth: 200,
+    ...SHADOWS.medium,
   },
   markAllText: {
-    ...FONTS.medium,
-    fontSize: SIZES.body2,
-    color: COLORS.text,
+    ...FONTS.semiBold,
+    fontSize: SIZES.body1,
+    color: COLORS.white,
   },
 });
 
