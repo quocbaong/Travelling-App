@@ -89,18 +89,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
   };
 
   const getIconColor = (type: string) => {
-    switch (type) {
-      case 'booking':
-        return COLORS.success;
-      case 'payment':
-        return COLORS.primary;
-      case 'review':
-        return COLORS.warning;
-      case 'system':
-        return COLORS.info;
-      default:
-        return COLORS.info;
-    }
+    return '#0077B6';
   };
 
   return (
@@ -137,80 +126,98 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
             </View>
           </LinearGradient>
 
-          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <ScrollView 
+            style={styles.content} 
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.contentContainer}
+          >
             {notifications.length === 0 ? (
               <View style={styles.emptyState}>
-                <Ionicons
-                  name="notifications-outline"
-                  size={64}
-                  color={COLORS.gray}
-                />
+                <View style={styles.emptyIconContainer}>
+                  <Ionicons
+                    name="notifications-outline"
+                    size={80}
+                    color={COLORS.gray}
+                  />
+                </View>
                 <Text style={styles.emptyTitle}>Không có thông báo nào</Text>
                 <Text style={styles.emptyText}>
                   Bạn sẽ nhận được thông báo mới ở đây
                 </Text>
               </View>
             ) : (
-              notifications.map((notification, index) => {
-                return (
-                  <View
-                    key={notification.id}
-                  >
+              <View style={styles.notificationsList}>
+                {notifications.map((notification, index) => {
+                  return (
                     <TouchableOpacity
+                      key={notification.id}
                       style={[
-                        styles.notificationItem,
-                        !notification.read && styles.unreadItem,
+                        styles.notificationCard,
+                        !notification.read && styles.unreadCard,
+                        index === notifications.length - 1 && styles.lastCard,
                       ]}
                       activeOpacity={0.7}
                       onPress={() => handleNotificationPress(notification.id)}
                     >
-                      <View style={[
-                        styles.notificationIcon,
-                        !notification.read && styles.unreadIcon
-                      ]}>
-                        <Ionicons
-                          name={getIconName(notification.type)}
-                          size={20}
-                          color={getIconColor(notification.type)}
-                        />
-                        {!notification.read && (
-                          <View style={styles.newBadge}>
-                            <Text style={styles.newBadgeText}>NEW</Text>
+                      <View style={styles.cardContent}>
+                        <View style={[
+                          styles.notificationIconContainer,
+                          !notification.read && styles.unreadIconContainer
+                        ]}>
+                          <Ionicons
+                            name={getIconName(notification.type)}
+                            size={24}
+                            color={getIconColor(notification.type)}
+                          />
+                          {!notification.read && (
+                            <View style={styles.unreadIndicator} />
+                          )}
+                        </View>
+                        <View style={styles.notificationContent}>
+                          <View style={styles.notificationHeader}>
+                            <Text 
+                              style={[
+                                styles.notificationTitle,
+                                !notification.read && styles.unreadTitle
+                              ]}
+                              numberOfLines={2}
+                            >
+                              {notification.title}
+                            </Text>
+                            <Text style={styles.notificationTime}>
+                              {getTimeAgo(notification.createdAt)}
+                            </Text>
                           </View>
+                          <Text 
+                            style={styles.notificationMessage}
+                            numberOfLines={2}
+                          >
+                            {notification.message}
+                          </Text>
+                        </View>
+                        {!notification.read && (
+                          <View style={styles.unreadDot} />
                         )}
                       </View>
-                  <View style={styles.notificationContent}>
-                    <View style={styles.notificationHeader}>
-                        <Text style={[
-                          styles.notificationTitle,
-                          !notification.read && styles.unreadTitle
-                        ]}>
-                          {notification.title}
-                        </Text>
-                      <Text style={styles.notificationTime}>
-                        {getTimeAgo(notification.createdAt)}
-                      </Text>
-                    </View>
-                    <Text style={styles.notificationMessage}>
-                      {notification.message}
-                    </Text>
-                  </View>
                     </TouchableOpacity>
-                  </View>
-                );
-              })
+                  );
+                })}
+              </View>
             )}
           </ScrollView>
 
-          <View style={styles.footer}>
-            <TouchableOpacity
-              style={styles.markAllButton}
-              onPress={handleMarkAllAsRead}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.markAllText}>Đánh dấu tất cả đã đọc</Text>
-            </TouchableOpacity>
-          </View>
+          {notifications.length > 0 && (
+            <View style={styles.footer}>
+              <TouchableOpacity
+                style={styles.markAllButton}
+                onPress={handleMarkAllAsRead}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="checkmark-done" size={16} color={COLORS.text} style={{ marginRight: SIZES.xs }} />
+                <Text style={styles.markAllText}>Đánh dấu tất cả đã đọc</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </Pressable>
       </Pressable>
     </Modal>
@@ -233,7 +240,7 @@ const styles = StyleSheet.create({
   header: {
     borderTopLeftRadius: SIZES.radiusXl,
     borderTopRightRadius: SIZES.radiusXl,
-    paddingTop: SIZES.lg,
+    paddingTop: SIZES.md,
     paddingBottom: SIZES.md,
     paddingHorizontal: SIZES.lg,
   },
@@ -248,7 +255,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...FONTS.bold,
-    fontSize: SIZES.h4,
+    fontSize: SIZES.h5,
     color: COLORS.white,
     marginLeft: SIZES.sm,
   },
@@ -262,71 +269,93 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: SIZES.lg,
+  },
+  contentContainer: {
+    padding: SIZES.md,
+    paddingBottom: SIZES.lg,
   },
   emptyState: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: SIZES.xxl,
+    paddingVertical: SIZES.xxl * 2,
+    minHeight: height * 0.5,
+  },
+  emptyIconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: COLORS.backgroundSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SIZES.lg,
   },
   emptyTitle: {
     ...FONTS.bold,
-    fontSize: SIZES.h5,
+    fontSize: SIZES.h4,
     color: COLORS.text,
     marginTop: SIZES.md,
     marginBottom: SIZES.sm,
   },
   emptyText: {
     ...FONTS.regular,
-    fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    fontSize: SIZES.body1,
+    color: COLORS.text,
     textAlign: 'center',
+    paddingHorizontal: SIZES.xl,
+    lineHeight: 22,
   },
-  notificationItem: {
-    flexDirection: 'row',
-    paddingVertical: SIZES.md,
-    paddingHorizontal: SIZES.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.lightGray,
+  notificationsList: {
+    paddingBottom: SIZES.xs,
+  },
+  notificationCard: {
     backgroundColor: COLORS.white,
-    position: 'relative',
+    borderRadius: SIZES.radiusLg,
+    padding: SIZES.md,
+    marginBottom: SIZES.md,
+    ...SHADOWS.medium,
+    borderWidth: 1,
+    borderColor: COLORS.lightGray,
   },
-  unreadItem: {
-    // Bỏ background và border để chỉ làm nổi bật tiêu đề
+  unreadCard: {
+    backgroundColor: '#F0F8FF',
+    borderColor: '#0077B6',
+    borderWidth: 1.5,
+    ...SHADOWS.medium,
   },
-  notificationIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.backgroundSecondary,
+  lastCard: {
+    marginBottom: 0,
+  },
+  cardContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  notificationIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SIZES.md,
     position: 'relative',
   },
-  unreadIcon: {
-    // Bỏ styling đặc biệt cho icon
+  unreadIconContainer: {
+    backgroundColor: '#B3E5FC',
   },
-  newBadge: {
+  unreadIndicator: {
     position: 'absolute',
-    top: -5,
-    right: -5,
-    backgroundColor: '#FF0000',
-    borderRadius: 8,
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-    minWidth: 20,
-    alignItems: 'center',
-  },
-  newBadgeText: {
-    ...FONTS.bold,
-    fontSize: 8,
-    color: COLORS.white,
-    textAlign: 'center',
+    top: -2,
+    right: -2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#FF3B30',
+    borderWidth: 2,
+    borderColor: COLORS.white,
   },
   notificationContent: {
     flex: 1,
+    paddingRight: SIZES.sm,
   },
   notificationHeader: {
     flexDirection: 'row',
@@ -339,46 +368,53 @@ const styles = StyleSheet.create({
     fontSize: SIZES.body1,
     color: COLORS.text,
     flex: 1,
-    marginRight: SIZES.sm,
+    lineHeight: 20,
   },
   unreadTitle: {
     ...FONTS.bold,
-    color: COLORS.primary,
+    color: '#0077B6',
   },
   notificationTime: {
     ...FONTS.regular,
     fontSize: SIZES.body3,
-    color: COLORS.textLight,
+    color: COLORS.text,
+    marginTop: 2,
   },
   notificationMessage: {
     ...FONTS.regular,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.text,
     lineHeight: 20,
+    marginTop: SIZES.xs,
   },
   unreadDot: {
-    position: 'absolute',
-    top: SIZES.md + 8,
-    right: 0,
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: COLORS.primary,
+    backgroundColor: '#0077B6',
+    marginTop: SIZES.sm,
   },
   footer: {
     paddingHorizontal: SIZES.lg,
-    paddingVertical: SIZES.md,
+    paddingVertical: SIZES.sm,
+    paddingBottom: SIZES.md,
     borderTopWidth: 1,
     borderTopColor: COLORS.lightGray,
+    backgroundColor: COLORS.white,
   },
   markAllButton: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: SIZES.sm,
+    paddingHorizontal: SIZES.md,
+    backgroundColor: COLORS.backgroundSecondary,
+    borderRadius: SIZES.radius,
   },
   markAllText: {
-    ...FONTS.semiBold,
-    fontSize: SIZES.body1,
-    color: COLORS.primary,
+    ...FONTS.medium,
+    fontSize: SIZES.body2,
+    color: COLORS.text,
   },
 });
 
