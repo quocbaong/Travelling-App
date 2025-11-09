@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import { useRoute, RouteProp } from '@react-navigation/native';
 
 import { COLORS, SIZES, FONTS } from '../constants/theme';
 import { RootStackParamList, Review } from '../types';
-import { mockReviews } from '../api';
+import { mockReviews, useReviewsByDestination } from '../api';
 import { Header, Loading } from '../components';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -22,38 +22,28 @@ const ReviewsScreen = () => {
   const route = useRoute<RouteProps>();
   const { destinationId } = route.params;
   const { userReviews } = useAuth();
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
+  
+  // Use React Query hook for reviews with caching
+  const { data: apiReviews = [], isLoading, refetch } = useReviewsByDestination(destinationId);
 
-  useEffect(() => {
-    loadReviews();
-  }, [destinationId, userReviews]);
+  // Combine API reviews, mock reviews, and user reviews
+  const reviews = React.useMemo(() => {
+    const mockDestinationReviews = mockReviews.filter(review => 
+      review.destinationId === destinationId
+    );
+    
+    const userDestinationReviews = userReviews.filter(review => 
+      review.destinationId === destinationId
+    );
+    
+    // Combine and sort by date (newest first)
+    const allReviews = [...apiReviews, ...mockDestinationReviews, ...userDestinationReviews]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    return allReviews;
+  }, [apiReviews, destinationId, userReviews]);
 
-  const loadReviews = async () => {
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Combine mock reviews with user reviews
-      const mockDestinationReviews = mockReviews.filter(review => 
-        review.destinationId === destinationId
-      );
-      
-      const userDestinationReviews = userReviews.filter(review => 
-        review.destinationId === destinationId
-      );
-      
-      // Combine and sort by date (newest first)
-      const allReviews = [...mockDestinationReviews, ...userDestinationReviews]
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      
-      setReviews(allReviews);
-    } catch (error) {
-      console.error('Error loading reviews:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loading = isLoading;
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, index) => (

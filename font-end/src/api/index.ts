@@ -7,5 +7,9 @@ export { notificationService } from './notificationService';
 export { paymentMethodService } from './paymentMethodService';
 export { API_CONFIG, HttpClient, ApiError } from './config';
 export * from './mockData';
+// React Query hooks for caching
+export * from './cache/destinationHooks';
+export * from './cache/userHooks';
+export * from './cache/reviewHooks';
 
 

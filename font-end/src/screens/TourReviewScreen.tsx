@@ -17,6 +17,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { RootStackParamList, Booking, Review } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import { useCreateReview, useUserReviewForDestination } from '../api';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type RouteProps = RouteProp<RootStackParamList, 'TourReview'>;
@@ -26,6 +27,10 @@ const TourReviewScreen = () => {
   const route = useRoute<RouteProps>();
   const booking = (route.params as any)?.booking;
   const { user, addReview, userReviews } = useAuth();
+
+  // Use React Query hooks for reviews with caching
+  const { data: existingReview } = useUserReviewForDestination(user?.id, booking?.destination?.id);
+  const createReviewMutation = useCreateReview();
 
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
@@ -84,22 +89,15 @@ const TourReviewScreen = () => {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Create new review
-      const newReview: Review = {
-        id: `review-${Date.now()}`,
+      // Use React Query mutation to create review (will invalidate cache automatically)
+      const newReview = await createReviewMutation.mutateAsync({
         userId: user?.id || 'user-1',
-        userName: user?.name || 'User',
-        userAvatar: user?.avatar,
         destinationId: booking.destination.id,
         rating: rating,
         comment: reviewText.trim(),
-        createdAt: new Date().toISOString(),
-      };
+      });
 
-      // Add review to context
+      // Add review to context for immediate UI update
       addReview(newReview);
 
       Alert.alert(
@@ -117,6 +115,7 @@ const TourReviewScreen = () => {
         ]
       );
     } catch (error) {
+      console.error('Error creating review:', error);
       Alert.alert('Lỗi', 'Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại.');
     } finally {
       setIsSubmitting(false);
@@ -299,9 +298,9 @@ const TourReviewScreen = () => {
                 (rating === 0 || reviewText.trim().length < 10 || isSubmitting) && styles.submitButtonDisabled
               ]}
               onPress={handleSubmitReview}
-              disabled={rating === 0 || reviewText.trim().length < 10 || isSubmitting}
+              disabled={rating === 0 || reviewText.trim().length < 10 || isSubmitting || createReviewMutation.isPending}
             >
-              {isSubmitting ? (
+              {(isSubmitting || createReviewMutation.isPending) ? (
                 <Text style={styles.submitButtonText}>Đang gửi...</Text>
               ) : (
                 <Text style={styles.submitButtonText}>Gửi đánh giá</Text>

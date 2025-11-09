@@ -23,7 +23,7 @@ import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 // react-native-maps requires native modules and causes TurboModule errors in Expo Go
 // WebView solution works universally without native dependencies
 import { RootStackParamList, Destination, Review } from '../types';
-import { userService, destinationService, reviewService } from '../api';
+import { userService, destinationService, reviewService, useReviewsByDestination } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import { GOOGLE_MAPS_API_KEY } from '../api/config';
 
@@ -52,11 +52,13 @@ const DestinationDetailScreen = () => {
     user?.favorites?.includes(destination.id) || false
   );
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [reviews, setReviews] = useState<Review[]>([]);
   const [expandedDescription, setExpandedDescription] = useState(false);
   const [mapLoadError, setMapLoadError] = useState(false);
   const imageScrollRef = useRef<FlatList>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
+
+  // Use React Query hook for reviews with caching
+  const { data: reviews = [], refetch: refetchReviews } = useReviewsByDestination(destination.id);
 
   // Fixed visited count (cố định, không đổi)
   const visitedCount = useMemo(() => {
@@ -91,23 +93,12 @@ const DestinationDetailScreen = () => {
     }
   };
 
-  // Fetch reviews for this destination
-  const loadReviews = async () => {
-    try {
-      const destinationReviews = await reviewService.getReviewsByDestination(destination.id);
-      setReviews(destinationReviews);
-    } catch (error) {
-      console.error('Failed to load reviews:', error);
-      setReviews([]);
-    }
-  };
-
   // Refresh when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       refreshDestination();
-      loadReviews();
-    }, [destination.id])
+      refetchReviews();
+    }, [destination.id, refetchReviews])
   );
 
   // Update favorite status when user favorites change

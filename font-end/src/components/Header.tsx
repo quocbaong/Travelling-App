@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { COLORS, SIZES, FONTS } from '../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 
 interface HeaderProps {
   title?: string;
@@ -35,7 +35,7 @@ export const Header: React.FC<HeaderProps> = ({
     <View
       style={[
         styles.container,
-        { paddingTop: insets.top + SIZES.sm },
+        { paddingTop: SIZES.md+2 },
         transparent && styles.transparent,
         style,
       ]}
@@ -43,7 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
       <View style={styles.content}>
         {showBack ? (
           <TouchableOpacity
-            style={styles.iconButton}
+            style={[styles.iconButton, styles.backButton]}
             onPress={onBackPress}
             activeOpacity={0.7}
           >
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: COLORS.background,
     paddingHorizontal: SIZES.md,
-    paddingBottom: SIZES.sm,
+    paddingBottom: SIZES.xs,
   },
   transparent: {
     backgroundColor: 'transparent',
@@ -114,6 +114,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 20,
+  },
+  backButton: {
+    backgroundColor: COLORS.backgroundSecondary,
+    ...SHADOWS.light,
   },
   title: {
     ...FONTS.bold,
