@@ -272,21 +272,49 @@ cd font-end
 npm install
 ```
 
-3. **Cấu hình API endpoint**:
-   - Mở file `src/api/config.ts`
-   - Tìm `API_CONFIG.BASE_URL`
-   - Cập nhật với IP máy của bạn:
+3. **Cấu hình API endpoint** (QUAN TRỌNG):
+   
+   **Mở file `src/api/config.ts`** và cấu hình 2 biến:
+   
+   **A. Tìm IP local của máy tính:**
+   ```bash
+   # Windows
+   ipconfig
+   # Tìm dòng "IPv4 Address" → ví dụ: 192.168.1.100
+   
+   # Mac/Linux
+   ifconfig
+   # Hoặc
+   ip addr
+   ```
+   
+   **B. Cập nhật trong `config.ts`:**
+   
+   - **Dòng 29** - Cập nhật `LOCAL_IP`:
      ```typescript
-     export const API_CONFIG = {
-       BASE_URL: 'http://YOUR_LOCAL_IP:8080/api',
-       // Ví dụ: 'http://192.168.1.100:8080/api'
-     };
+     const LOCAL_IP = '192.168.1.100'; // ⚠️ Thay bằng IP của bạn!
      ```
-   - **Lưu ý**: 
-     - Thay `YOUR_LOCAL_IP` bằng IP local của máy (không dùng `localhost`)
-     - Để tìm IP: 
-       - Windows: `ipconfig` → tìm "IPv4 Address"
-       - Mac/Linux: `ifconfig` hoặc `ip addr`
+   
+   - **Dòng 32** - Cấu hình `PRODUCTION_URL`:
+     
+     **Nếu Backend chạy trên LOCAL (máy tính):**
+     ```typescript
+     const PRODUCTION_URL = 'http://192.168.1.100:8080/api'; // ⚠️ Dùng IP local!
+     ```
+     - Thay `192.168.1.100` bằng IP bạn vừa tìm được
+     - **Lưu ý**: Điện thoại và máy tính PHẢI cùng mạng WiFi
+     
+     **Nếu Backend deploy trên CLOUD (Heroku, AWS, v.v.):**
+     ```typescript
+     const PRODUCTION_URL = 'https://your-backend-url.com/api';
+     // Ví dụ: 'https://travelling-app-backend.herokuapp.com/api'
+     ```
+     - Phải dùng HTTPS (không dùng HTTP)
+   
+   **C. Giải thích:**
+   - `LOCAL_IP`: Dùng khi chạy `expo start` (development mode)
+   - `PRODUCTION_URL`: Dùng khi build APK/IPA với EAS Build (production mode)
+   - App sẽ tự động chọn URL phù hợp dựa trên mode
 
 4. **Chạy Frontend**:
 ```bash
@@ -332,10 +360,12 @@ docker exec -it redis-travel-app redis-cli KEYS "*"
 - ✅ Kiểm tra password có ký tự đặc biệt cần URL-encode
 
 #### Frontend không kết nối được Backend
-- ✅ Kiểm tra `BASE_URL` trong `config.ts` đúng IP chưa
+- ✅ Kiểm tra `LOCAL_IP` và `PRODUCTION_URL` trong `config.ts` đúng chưa
 - ✅ Kiểm tra Backend đang chạy tại port 8080
 - ✅ Kiểm tra firewall không chặn port 8080
-- ✅ Đảm bảo điện thoại và máy tính cùng mạng WiFi
+- ✅ Đảm bảo điện thoại và máy tính cùng mạng WiFi (nếu backend local)
+- ✅ Nếu build APK: Kiểm tra `PRODUCTION_URL` đúng (không dùng `LOCAL_IP`)
+- ✅ Test API bằng browser: `http://YOUR_IP:8080/api/destinations`
 
 #### Redis không chạy
 - ✅ Kiểm tra Docker Desktop đang chạy
@@ -349,6 +379,60 @@ docker exec -it redis-travel-app redis-cli KEYS "*"
 Sau khi backend chạy, truy cập:
 - **Swagger UI**: `http://localhost:8080/api/swagger-ui.html`
 - **API Docs**: `http://localhost:8080/api/api-docs`
+
+---
+
+## 📱 Build App với EAS Build
+
+### Yêu Cầu
+
+- **EAS CLI**: `npm install -g eas-cli`
+- **Expo account**: Đăng ký miễn phí tại https://expo.dev
+- **Đã cấu hình IP** trong `font-end/src/api/config.ts` (xem Bước 4)
+
+### Các Bước Build
+
+1. **Đăng nhập Expo**:
+```bash
+cd font-end
+eas login
+```
+
+2. **Cấu hình EAS** (đã có file `eas.json`):
+```bash
+eas build:configure
+```
+
+3. **Build Development Build** (cho testing):
+```bash
+# Android
+eas build --profile development --platform android
+
+# iOS (cần Apple Developer account)
+eas build --profile development --platform ios
+```
+
+4. **Build Preview Build** (APK cho Android):
+```bash
+eas build --profile preview --platform android
+```
+
+5. **Tải và cài APK**:
+   - EAS sẽ cung cấp link download sau khi build xong
+   - Tải APK về điện thoại và cài đặt
+
+### Lưu Ý Quan Trọng
+
+- ⚠️ **EAS Build chỉ build frontend**, backend vẫn phải chạy riêng
+- ⚠️ **Cấu hình `PRODUCTION_URL`** trong `config.ts` trước khi build
+- ⚠️ Nếu backend local: Đảm bảo IP đúng và điện thoại cùng mạng WiFi
+- ⚠️ Nếu backend cloud: Đảm bảo URL đúng và accessible
+
+### Xem Chi Tiết
+
+Xem file `font-end/EAS_BUILD_GUIDE.md` (nếu có) hoặc tài liệu: https://docs.expo.dev/build/introduction/
+
+---
 
 ## 🔄 Luồng hoạt động
 
