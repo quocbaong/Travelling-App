@@ -17,10 +17,12 @@
 
 ### Backend (Spring Boot)
 - **Framework**: Spring Boot 3.x
-- **Database**: MongoDB
+- **Database**: MongoDB Atlas (Cloud)
+- **Cache**: Redis (Docker)
 - **Authentication**: JWT (JSON Web Tokens)
 - **Password Encryption**: BCrypt
 - **API Documentation**: OpenAPI/Swagger
+- **Caching**: Spring Cache với Redis
 
 ## 🎯 Tính năng chính
 
@@ -134,9 +136,133 @@
 
 ## 🚀 Cài đặt và chạy ứng dụng
 
-### Frontend (React Native)
+### Yêu cầu hệ thống
 
-1. **Clone repository và di chuyển vào thư mục frontend**:
+- **Node.js** (v16 trở lên)
+- **Java JDK** (v17 trở lên)
+- **Maven** (hoặc sử dụng Maven Wrapper)
+- **Docker Desktop** (cho Redis)
+- **MongoDB Atlas Account** (miễn phí)
+- **Expo CLI** (cho React Native)
+
+---
+
+### Bước 1: Thiết lập MongoDB Atlas
+
+1. **Tạo tài khoản MongoDB Atlas**:
+   - Truy cập: https://www.mongodb.com/cloud/atlas
+   - Đăng ký tài khoản miễn phí
+
+2. **Tạo Cluster**:
+   - Chọn "Create a Cluster"
+   - Chọn "Shared" (M0 - Free tier)
+   - Chọn region gần bạn nhất
+   - Đặt tên cluster (ví dụ: `Cluster0`)
+   - Click "Create Cluster"
+
+3. **Tạo Database User**:
+   - Vào "Security" → "Database & Network Access" → "Database Access"
+   - Click "Add New Database User"
+   - Chọn "Password" authentication
+   - Nhập username và password (lưu lại để dùng sau)
+   - Chọn "Atlas admin" hoặc "Read and write to any database"
+   - Click "Add User"
+
+4. **Whitelist IP Address**:
+   - Vào "Network Access"
+   - Click "Add IP Address"
+   - Chọn "Allow Access from Anywhere" (0.0.0.0/0) cho development
+   - Hoặc "Add Current IP Address" cho production
+   - Click "Confirm"
+
+5. **Lấy Connection String**:
+   - Vào "Database" → "Clusters"
+   - Click "Connect" bên cạnh cluster
+   - Chọn "Connect your application"
+   - Chọn Driver: "Java", Version: "5.5 or later"
+   - Copy connection string (sẽ có dạng):
+     ```
+     mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
+     ```
+
+---
+
+### Bước 2: Thiết lập Redis (Docker)
+
+1. **Khởi động Docker Desktop**
+
+2. **Chạy Redis container**:
+```bash
+docker run -d --name redis-travel-app -p 6379:6379 redis:latest
+```
+
+3. **Kiểm tra Redis đang chạy**:
+```bash
+docker ps
+```
+
+---
+
+### Bước 3: Cấu hình Backend
+
+1. **Di chuyển vào thư mục backend**:
+```bash
+cd Travelling_App_BE
+```
+
+2. **Cấu hình MongoDB Atlas**:
+   - Mở file `src/main/resources/application.yml`
+   - Tìm dòng `spring.data.mongodb.uri`
+   - Thay thế connection string:
+     ```yaml
+     spring:
+       data:
+         mongodb:
+           uri: mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/travelling_db?retryWrites=true&w=majority
+     ```
+   - **Lưu ý**: 
+     - Thay `<username>` và `<password>` bằng thông tin bạn đã tạo
+     - Thay `cluster0.xxxxx` bằng cluster name thực tế
+     - Thêm `/travelling_db` trước dấu `?` để chỉ định database name
+     - Nếu password có ký tự đặc biệt, cần URL-encode (ví dụ: `@` → `%40`)
+
+3. **Kiểm tra Redis configuration** (đã có sẵn):
+   ```yaml
+   spring:
+     data:
+       redis:
+         host: localhost
+         port: 6379
+   ```
+
+4. **Build project** (tùy chọn):
+```bash
+./mvnw clean install
+```
+
+5. **Chạy Backend**:
+   - **Cách 1: IntelliJ IDEA**
+     - Mở project trong IntelliJ
+     - Run `TravellingAppBeApplication.java`
+   
+   - **Cách 2: Command Line**:
+     ```bash
+     ./mvnw spring-boot:run
+     ```
+
+6. **Kiểm tra Backend đang chạy**:
+   - Backend sẽ chạy tại: `http://localhost:8080/api`
+   - Swagger UI: `http://localhost:8080/api/swagger-ui.html`
+   - Kiểm tra logs để đảm bảo kết nối MongoDB Atlas thành công:
+     ```
+     Monitor thread successfully connected to server
+     ```
+
+---
+
+### Bước 4: Cấu hình Frontend
+
+1. **Di chuyển vào thư mục frontend**:
 ```bash
 cd font-end
 ```
@@ -146,40 +272,83 @@ cd font-end
 npm install
 ```
 
-3. **Cấu hình API endpoint** (font-end/src/api/config.ts):
-```typescript
-export const API_CONFIG = {
-  BASE_URL: 'http://YOUR_IP:8080/api',
-  // ...
-};
-```
+3. **Cấu hình API endpoint**:
+   - Mở file `src/api/config.ts`
+   - Tìm `API_CONFIG.BASE_URL`
+   - Cập nhật với IP máy của bạn:
+     ```typescript
+     export const API_CONFIG = {
+       BASE_URL: 'http://YOUR_LOCAL_IP:8080/api',
+       // Ví dụ: 'http://192.168.1.100:8080/api'
+     };
+     ```
+   - **Lưu ý**: 
+     - Thay `YOUR_LOCAL_IP` bằng IP local của máy (không dùng `localhost`)
+     - Để tìm IP: 
+       - Windows: `ipconfig` → tìm "IPv4 Address"
+       - Mac/Linux: `ifconfig` hoặc `ip addr`
 
-4. **Chạy ứng dụng**:
+4. **Chạy Frontend**:
 ```bash
 npx expo start
 ```
 
-### Backend (Spring Boot)
+5. **Mở ứng dụng**:
+   - Quét QR code bằng Expo Go app (iOS/Android)
+   - Hoặc nhấn `a` cho Android emulator
+   - Hoặc nhấn `i` cho iOS simulator
 
-1. **Di chuyển vào thư mục backend**:
+---
+
+### Bước 5: Kiểm tra kết nối
+
+1. **Kiểm tra Backend**:
+   - Mở browser: `http://localhost:8080/api/swagger-ui.html`
+   - Test API endpoints
+
+2. **Kiểm tra Frontend**:
+   - Mở app trên điện thoại/emulator
+   - Kiểm tra kết nối với backend
+   - Test đăng ký/đăng nhập
+
+3. **Kiểm tra MongoDB Atlas**:
+   - Vào MongoDB Atlas Dashboard
+   - "Database" → "Browse Collections"
+   - Kiểm tra database `travelling_db` và các collections
+
+4. **Kiểm tra Redis Cache**:
 ```bash
-cd Travelling_App_BE
+docker exec -it redis-travel-app redis-cli KEYS "*"
 ```
 
-2. **Cấu hình MongoDB** (application.properties):
-```properties
-spring.data.mongodb.uri=mongodb://localhost:27017/travelling_app
-```
+---
 
-3. **Build và chạy**:
-```bash
-./mvnw spring-boot:run
-```
+### 🔧 Troubleshooting
 
-Hoặc nếu sử dụng IntelliJ IDEA, chỉ cần Run application.
+#### Backend không kết nối được MongoDB Atlas
+- ✅ Kiểm tra IP đã được whitelist chưa
+- ✅ Kiểm tra username/password đúng chưa
+- ✅ Kiểm tra connection string có database name (`/travelling_db`)
+- ✅ Kiểm tra password có ký tự đặc biệt cần URL-encode
 
-4. **API Documentation**:
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
+#### Frontend không kết nối được Backend
+- ✅ Kiểm tra `BASE_URL` trong `config.ts` đúng IP chưa
+- ✅ Kiểm tra Backend đang chạy tại port 8080
+- ✅ Kiểm tra firewall không chặn port 8080
+- ✅ Đảm bảo điện thoại và máy tính cùng mạng WiFi
+
+#### Redis không chạy
+- ✅ Kiểm tra Docker Desktop đang chạy
+- ✅ Kiểm tra container: `docker ps`
+- ✅ Restart container: `docker restart redis-travel-app`
+
+---
+
+### 📚 API Documentation
+
+Sau khi backend chạy, truy cập:
+- **Swagger UI**: `http://localhost:8080/api/swagger-ui.html`
+- **API Docs**: `http://localhost:8080/api/api-docs`
 
 ## 🔄 Luồng hoạt động
 
@@ -266,5 +435,5 @@ This project is for educational purposes.
 ---------------------------
 
 **Version**: 1.0.0  
-**Last Updated**: November 05 2025
+**Last Updated**: November 10 2025
 
