@@ -18,7 +18,7 @@ import java.util.List;
 @Slf4j
 public class NotificationSchedulerService {
     
-    private final BookingRepository bookingRepository;
+    private final BookingService bookingService;
     private final NotificationService notificationService;
     
     // Chạy mỗi giờ để kiểm tra tour sắp khởi hành
@@ -28,7 +28,8 @@ public class NotificationSchedulerService {
         
         try {
             // Lấy tất cả bookings có status CONFIRMED hoặc PENDING
-            List<Booking> allBookings = bookingRepository.findAll();
+            // Use BookingService to get bookings with properly populated destinations
+            List<Booking> allBookings = bookingService.getAllBookings();
             
             LocalDate today = LocalDate.now();
             LocalDate tomorrow = today.plusDays(1);

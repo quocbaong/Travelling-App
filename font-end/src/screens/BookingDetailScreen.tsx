@@ -125,10 +125,10 @@ const BookingDetailScreen = () => {
         <View style={styles.content}>
           {/* Destination Info */}
           <View style={styles.section}>
-            <Text style={styles.destinationName}>{booking.destination.name}</Text>
+            <Text style={styles.destinationName}>{booking.destination?.name || 'Không có tên'}</Text>
             <View style={styles.locationRow}>
               <Ionicons name="location" size={16} color="#FF0000" />
-              <Text style={styles.location}>{booking.destination.country}</Text>
+              <Text style={styles.location}>{booking.destination?.country || 'Không xác định'}</Text>
             </View>
           </View>
 

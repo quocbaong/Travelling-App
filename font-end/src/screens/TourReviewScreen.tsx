@@ -39,7 +39,7 @@ const TourReviewScreen = () => {
   // Check if user has already reviewed this tour
   const hasAlreadyReviewed = () => {
     return userReviews.some(review => 
-      review.destinationId === booking.destination.id && 
+      review.destinationId === booking.destination?.id && 
       review.userId === user?.id
     );
   };
@@ -47,7 +47,7 @@ const TourReviewScreen = () => {
   // Get existing review if user has already reviewed
   const getExistingReview = () => {
     return userReviews.find(review => 
-      review.destinationId === booking.destination.id && 
+      review.destinationId === booking.destination?.id && 
       review.userId === user?.id
     );
   };
@@ -65,7 +65,7 @@ const TourReviewScreen = () => {
         [
           {
             text: 'Xem đánh giá của tôi',
-            onPress: () => navigation.navigate('Reviews', { destinationId: booking.destination.id }),
+            onPress: () => navigation.navigate('Reviews', { destinationId: booking.destination?.id || '' }),
           },
           {
             text: 'Quay lại',
@@ -92,7 +92,7 @@ const TourReviewScreen = () => {
       // Use React Query mutation to create review (will invalidate cache automatically)
       const newReview = await createReviewMutation.mutateAsync({
         userId: user?.id || 'user-1',
-        destinationId: booking.destination.id,
+        destinationId: booking.destination?.id || '',
         rating: rating,
         comment: reviewText.trim(),
       });
@@ -106,7 +106,7 @@ const TourReviewScreen = () => {
         [
           {
             text: 'Xem đánh giá',
-            onPress: () => navigation.navigate('Reviews', { destinationId: booking.destination.id }),
+            onPress: () => navigation.navigate('Reviews', { destinationId: booking.destination?.id || '' }),
           },
           {
             text: 'Đặt chỗ',
@@ -178,12 +178,15 @@ const TourReviewScreen = () => {
         <View style={styles.section}>
           <View style={styles.tourCard}>
             <Image
-              source={{ uri: booking.destination.imageUrl }}
+              source={{ uri: booking.destination?.imageUrl || booking.destination?.images?.[0] || 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80' }}
               style={styles.tourImage}
             />
             <View style={styles.tourInfo}>
-              <Text style={styles.tourName}>{booking.destination.name}</Text>
-              <Text style={styles.tourCountry}>{booking.destination.country}</Text>
+              <Text style={styles.tourName}>{booking.destination?.name || 'Không có tên'}</Text>
+              <View style={styles.locationRow}>
+                <Ionicons name="location" size={16} color="#FF0000" />
+                <Text style={styles.tourCountry}>{booking.destination?.country || 'Không xác định'}</Text>
+              </View>
               <View style={styles.tourDates}>
                 <Ionicons name="calendar-outline" size={16} color={COLORS.textSecondary} />
                 <Text style={styles.dateText}>
@@ -221,7 +224,7 @@ const TourReviewScreen = () => {
               <TextInput
                 style={styles.reviewInput}
                 placeholder="Hãy chia sẻ trải nghiệm của bạn về chuyến đi này... (ít nhất 10 ký tự)"
-                placeholderTextColor={COLORS.textSecondary}
+                placeholderTextColor={COLORS.black}
                 multiline
                 numberOfLines={6}
                 value={reviewText}
@@ -314,7 +317,7 @@ const TourReviewScreen = () => {
           <View style={styles.section}>
             <TouchableOpacity
               style={styles.viewReviewsButton}
-              onPress={() => navigation.navigate('Reviews', { destinationId: booking.destination.id })}
+              onPress={() => navigation.navigate('Reviews', { destinationId: booking.destination?.id || '' })}
             >
               <Text style={styles.viewReviewsButtonText}>Xem tất cả đánh giá</Text>
               <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
@@ -390,11 +393,16 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginBottom: SIZES.xs,
   },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SIZES.sm,
+  },
   tourCountry: {
     ...FONTS.regular,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
-    marginBottom: SIZES.sm,
+    color: '#808080',
+    marginLeft: SIZES.xs,
   },
   tourDates: {
     flexDirection: 'row',
@@ -404,7 +412,7 @@ const styles = StyleSheet.create({
   dateText: {
     ...FONTS.regular,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.black,
     marginLeft: SIZES.xs,
   },
   tourGuests: {
@@ -414,7 +422,7 @@ const styles = StyleSheet.create({
   guestsText: {
     ...FONTS.regular,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.black,
     marginLeft: SIZES.xs,
   },
   ratingCard: {
@@ -452,7 +460,7 @@ const styles = StyleSheet.create({
   characterCount: {
     ...FONTS.regular,
     fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    color: COLORS.black,
     textAlign: 'right',
     marginTop: SIZES.sm,
   },
