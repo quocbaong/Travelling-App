@@ -93,7 +93,11 @@ const BookingDetailScreen = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Header title="Chi tiết đặt chỗ" showBack />
+      <Header 
+        title="Chi tiết đặt chỗ" 
+        showBack 
+        onBackPress={() => navigation.goBack()}
+      />
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Booking Image */}
@@ -123,7 +127,7 @@ const BookingDetailScreen = () => {
           <View style={styles.section}>
             <Text style={styles.destinationName}>{booking.destination.name}</Text>
             <View style={styles.locationRow}>
-              <Ionicons name="location" size={16} color={COLORS.primary} />
+              <Ionicons name="location" size={16} color="#FF0000" />
               <Text style={styles.location}>{booking.destination.country}</Text>
             </View>
           </View>
@@ -212,7 +216,7 @@ const BookingDetailScreen = () => {
                   <View style={styles.divider} />
                   <View style={styles.detailRow}>
                     <View style={styles.detailIcon}>
-                      <Ionicons name="card" size={20} color={COLORS.primary} />
+                      <Ionicons name="wallet" size={20} color="#4CAF50" />
                     </View>
                     <View style={styles.detailContent}>
                       <Text style={styles.detailLabel}>Phương thức thanh toán</Text>
@@ -240,14 +244,15 @@ const BookingDetailScreen = () => {
               <Button
                 title="Liên hệ hỗ trợ"
                 onPress={() => {}}
-                variant="outline"
-                style={styles.actionButton}
+                variant="primary"
+                style={styles.supportButton}
               />
               <Button
                 title="Hủy đặt chỗ"
                 onPress={handleCancelBooking}
                 variant="outline"
-                style={styles.actionButton}
+                style={styles.cancelButton}
+                textStyle={styles.cancelButtonText}
               />
             </View>
           )}
@@ -317,7 +322,7 @@ const styles = StyleSheet.create({
   location: {
     ...FONTS.medium,
     fontSize: SIZES.body1,
-    color: COLORS.textSecondary,
+    color: '#808080',
   },
   sectionTitle: {
     ...FONTS.bold,
@@ -338,8 +343,6 @@ const styles = StyleSheet.create({
   detailIcon: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.veryLightGray,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SIZES.sm,
@@ -349,15 +352,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   detailLabel: {
-    ...FONTS.regular,
-    fontSize: SIZES.body3,
-    color: COLORS.textSecondary,
+    ...FONTS.bold,
+    fontSize: SIZES.body1,
+    color: COLORS.black,
     marginBottom: 2,
   },
   detailValue: {
     ...FONTS.semiBold,
-    fontSize: SIZES.body1,
-    color: COLORS.text,
+    fontSize: SIZES.h5-1,
+    color: COLORS.black,
   },
   divider: {
     height: 1,
@@ -373,12 +376,12 @@ const styles = StyleSheet.create({
   priceLabel: {
     ...FONTS.regular,
     fontSize: SIZES.body1,
-    color: COLORS.textSecondary,
+    color: COLORS.black,
   },
   priceValue: {
     ...FONTS.semiBold,
     fontSize: SIZES.body1,
-    color: COLORS.text,
+    color: COLORS.black,
   },
   totalLabel: {
     ...FONTS.bold,
@@ -392,20 +395,32 @@ const styles = StyleSheet.create({
   },
   bookingIdLabel: {
     ...FONTS.regular,
-    fontSize: SIZES.body2,
-    color: COLORS.textSecondary,
+    fontSize: SIZES.body1,
+    color: COLORS.black,
     marginBottom: 4,
   },
   bookingId: {
     ...FONTS.bold,
-    fontSize: SIZES.h5,
-    color: COLORS.text,
+    fontSize: SIZES.h4,
+    color: COLORS.black,
   },
   actionsContainer: {
-    gap: SIZES.sm,
+    gap: SIZES.md,
+    paddingHorizontal: SIZES.md,
+    paddingBottom: SIZES.lg,
   },
-  actionButton: {
+  supportButton: {
+    minHeight: SIZES.buttonHeight,
+    borderRadius: SIZES.radiusMd,
+  },
+  cancelButton: {
+    minHeight: SIZES.buttonHeight,
+    borderWidth: 2,
     borderColor: COLORS.error,
+    borderRadius: SIZES.radiusMd,
+  },
+  cancelButtonText: {
+    color: COLORS.error,
   },
   reviewButton: {
     backgroundColor: COLORS.primary,
