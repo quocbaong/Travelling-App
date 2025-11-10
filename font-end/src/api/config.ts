@@ -2,21 +2,49 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 // API Configuration
+// ============================================
+// CẤU HÌNH BACKEND URL CHO EAS BUILD
+// ============================================
+// 
+// 1. NẾU BACKEND CHẠY TRÊN LOCAL (máy tính của bạn):
+//    - Tìm IP local của máy:
+//      * Windows: chạy lệnh "ipconfig" → tìm "IPv4 Address"
+//      * Mac/Linux: chạy lệnh "ifconfig" hoặc "ip addr"
+//    - Thay YOUR_LOCAL_IP bên dưới bằng IP của bạn
+//    - Ví dụ: 'http://192.168.1.100:8080/api'
+//    - LƯU Ý: Điện thoại và máy tính PHẢI cùng mạng WiFi
+//
+// 2. NẾU BACKEND DEPLOY TRÊN CLOUD (Heroku, AWS, Azure, v.v.):
+//    - Thay YOUR_PRODUCTION_URL bên dưới bằng URL backend của bạn
+//    - Ví dụ: 'https://travelling-app-backend.herokuapp.com/api'
+//    - Phải dùng HTTPS (không dùng HTTP)
+//
+// 3. KHI BUILD APK/IPA:
+//    - App sẽ dùng PRODUCTION_URL (dòng 19)
+//    - Nếu backend local, đảm bảo IP đúng và backend đang chạy
+//    - Nếu backend cloud, đảm bảo URL đúng và backend accessible
+// ============================================
+
+// IP local của máy tính (thay bằng IP của bạn)
+const LOCAL_IP = '192.168.1.27'; // ⚠️ THAY ĐỔI IP NÀY!
+
+// URL backend production (nếu deploy cloud)
+const PRODUCTION_URL = 'https://your-production-api.com/api'; // ⚠️ THAY ĐỔI URL NÀY!
+
 const getBaseUrl = () => {
   if (__DEV__) {
-    // Development URLs
+    // Development mode (khi chạy "expo start")
     if (Platform.OS === 'android') {
-
-      return 'http://192.168.1.27:8080/api'; // Android emulator with real IP
+      return `http://${LOCAL_IP}:8080/api`; // Android emulator/device
     } else if (Platform.OS === 'ios') {
-      return 'http://192.168.2.219:8080/api'; // iOS simulator with real IP
-
+      return `http://${LOCAL_IP}:8080/api`; // iOS simulator/device
     } else {
       return 'http://localhost:8080/api'; // Web
     }
   }
-  // Production URL (replace with your actual production URL)
-  return 'https://your-production-api.com/api';
+  // Production mode (khi build APK/IPA với EAS Build)
+  // ⚠️ QUAN TRỌNG: Thay đổi PRODUCTION_URL ở trên!
+  return PRODUCTION_URL;
 };
 
 // Google Maps API Configuration

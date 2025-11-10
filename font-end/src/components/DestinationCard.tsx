@@ -23,7 +23,7 @@ interface DestinationCardProps {
 }
 
 const { width } = Dimensions.get('window');
-const CARD_WIDTH = width * 0.7;
+const CARD_WIDTH = width * 0.65; // Giảm từ 0.7 xuống 0.65
 
 export const DestinationCard: React.FC<DestinationCardProps> = ({
   destination,
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: CARD_WIDTH,
-    height: 200,
+    height: 180, // Giảm từ 200 xuống 180
     borderRadius: SIZES.radiusLg,
     overflow: 'hidden',
     backgroundColor: COLORS.white,
