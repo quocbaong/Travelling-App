@@ -63,9 +63,9 @@ const HomeScreen = () => {
       console.log(`📊 LoadData - Total destinations: ${allDestinations?.length || 0}`);
       console.log(`📊 LoadData - Sample destinations:`, allDestinations?.slice(0, 3).map(d => ({ name: d.name, category: d.category })));
       
-      // Destinations nổi bật: rating >= 4.8, hiển thị 4-5 cái
+      // Destinations nổi bật: rating >= 4.7, hiển thị tối đa 5 cái
       const featured = allDestinations
-        .filter(dest => dest.rating >= 4.8)
+        .filter(dest => dest.rating >= 4.7)
         .sort((a, b) => b.rating - a.rating)
         .slice(0, 5);
       
