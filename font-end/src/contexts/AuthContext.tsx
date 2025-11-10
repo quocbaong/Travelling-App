@@ -244,14 +244,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const addBooking = async (booking: Booking) => {
-    setUserBookings(prev => [...prev, booking]);
-    
-    // Also update backend if user is logged in
+    // Update backend first if user is logged in
     if (user) {
       try {
         console.log('💰 Creating booking with totalPrice:', booking.totalPrice);
         console.log('💳 Payment method:', booking.paymentMethod);
-        await bookingService.createBooking(
+        const createdBooking = await bookingService.createBooking(
           booking.destination,
           user.id,
           booking.startDate,
@@ -262,11 +260,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           booking.paymentMethod // Pass payment method
         );
         
+        // Transform backend response to frontend format
+        const travelDate = new Date(createdBooking.startDate || (createdBooking as any).travelDate);
+        const durationDays = parseInt(booking.destination?.duration?.match(/\d+/)?.[0] || '7');
+        const returnDate = new Date(travelDate);
+        returnDate.setDate(returnDate.getDate() + durationDays);
+        
+        const transformedBooking: Booking = {
+          id: createdBooking.id || (createdBooking as any).id,
+          destination: (createdBooking as any).destination || booking.destination,
+          userId: createdBooking.userId || user.id,
+          startDate: createdBooking.startDate || (createdBooking as any).travelDate,
+          endDate: returnDate.toISOString(),
+          departureDate: travelDate.toLocaleDateString('en-GB'), // dd/mm/yyyy
+          returnDate: returnDate.toLocaleDateString('en-GB'), // dd/mm/yyyy
+          guests: (createdBooking as any).numberOfTravelers || booking.guests,
+          totalPrice: (createdBooking as any).totalPrice || booking.totalPrice,
+          status: ((createdBooking as any).status?.toLowerCase() || booking.status) as any,
+          createdAt: (createdBooking as any).createdAt || (createdBooking as any).bookingDate || new Date().toISOString(),
+          paymentMethod: (createdBooking as any).paymentMethod || booking.paymentMethod,
+          specialRequests: Array.isArray((createdBooking as any).specialRequests) 
+            ? (createdBooking as any).specialRequests.join(', ') 
+            : (createdBooking as any).specialRequests || booking.specialRequests || ''
+        };
+        
+        // Refresh bookings from backend to get complete data including populated destination
+        await refreshBookings();
+        
         // Load notifications after booking to get the new notification
         await loadNotifications();
       } catch (error) {
         console.error('Failed to sync booking to backend:', error);
+        // If backend fails, still add to local state for guest users
+        setUserBookings(prev => [...prev, booking]);
       }
+    } else {
+      // For guest users, just add to local state
+      setUserBookings(prev => [...prev, booking]);
     }
   };
 

@@ -51,7 +51,7 @@ const ReviewsScreen = () => {
         key={index}
         name={index < rating ? 'star' : 'star-outline'}
         size={16}
-        color={COLORS.accent}
+        color={index < rating ? COLORS.rating : COLORS.lightGray}
       />
     ));
   };
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   comment: {
     ...FONTS.regular,
     fontSize: SIZES.body1,
-    color: COLORS.textSecondary,
+    color: COLORS.black,
     lineHeight: 22,
   },
   reviewImagesContainer: {

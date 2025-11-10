@@ -1,43 +1,121 @@
 import { Booking, Destination } from '../types';
 import { HttpClient, API_CONFIG } from './config';
+import { destinationService } from './destinationService';
 
 class BookingService {
   async getUserBookings(userId: string): Promise<Booking[]> {
     try {
-      console.log('🔍 Fetching bookings for userId:', userId);
-      console.log('🔍 Endpoint:', `${API_CONFIG.ENDPOINTS.BOOKINGS_USER}/${userId}`);
       const response = await HttpClient.get<any[]>(`${API_CONFIG.ENDPOINTS.BOOKINGS_USER}/${userId}`);
-      console.log('✅ Raw bookings response:', response);
       
       // Transform backend data to frontend format
-      const bookings = response.map((booking: any) => {
-        // Calculate departure and return dates from travelDate and duration
-        const travelDate = new Date(booking.travelDate);
-        const durationDays = parseInt(booking.destination?.duration?.match(/\d+/)?.[0] || '7');
+      const bookings: Booking[] = [];
+      
+      for (const booking of response) {
+        
+        // If destination is null or not fully populated, try to fetch it using destinationId
+        let destination = booking.destination;
+        
+        // Check if destination is null or doesn't have required fields (name, country, etc.)
+        const isDestinationValid = destination && 
+                                   typeof destination === 'object' && 
+                                   destination.name && 
+                                   destination.country;
+        
+        if (!isDestinationValid) {
+          // Try to get destinationId from booking
+          // Check multiple possible locations for destinationId
+          let destinationId: string | null = null;
+          
+          // 1. Check if destinationId field exists directly in booking
+          if ((booking as any).destinationId) {
+            destinationId = (booking as any).destinationId;
+          }
+          // 2. Check if destination is a DBRef object with $id
+          else if (booking.destination && typeof booking.destination === 'object') {
+            const destObj = booking.destination as any;
+            // Handle DBRef format: {"$ref": "destinations", "$id": {"$oid": "..."}}
+            if (destObj.$id) {
+              if (typeof destObj.$id === 'string') {
+                destinationId = destObj.$id;
+              } else if (destObj.$id.$oid) {
+                destinationId = destObj.$id.$oid;
+              } else if (destObj.$id instanceof Object) {
+                destinationId = String(destObj.$id);
+              }
+            } else if (destObj.id) {
+              destinationId = destObj.id;
+            }
+          }
+          
+          if (destinationId) {
+            try {
+              destination = await destinationService.getDestinationById(destinationId);
+            } catch (error) {
+              console.error(`❌ Failed to fetch destination for booking ${booking.id}:`, error);
+            }
+          } else {
+            console.error(`❌ Booking ${booking.id} has no destination and no destinationId found`);
+          }
+        }
+        
+        // Handle travelDate - could be string, Date, or LocalDateTime
+        let travelDate: Date;
+        if (booking.travelDate) {
+          if (typeof booking.travelDate === 'string') {
+            travelDate = new Date(booking.travelDate);
+          } else if (booking.travelDate instanceof Date) {
+            travelDate = booking.travelDate;
+          } else {
+            // Handle LocalDateTime format from Java backend
+            travelDate = new Date(booking.travelDate);
+          }
+        } else {
+          // Fallback to current date + 7 days
+          travelDate = new Date();
+          travelDate.setDate(travelDate.getDate() + 7);
+        }
+        
+        // Calculate return date from duration
+        const durationDays = parseInt(destination?.duration?.match(/\d+/)?.[0] || '7');
         const returnDate = new Date(travelDate);
         returnDate.setDate(returnDate.getDate() + durationDays);
         
-        return {
+        // Format dates to dd/mm/yyyy
+        const formatDate = (date: Date): string => {
+          const day = String(date.getDate()).padStart(2, '0');
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const year = date.getFullYear();
+          return `${day}/${month}/${year}`;
+        };
+        
+        const transformedBooking: Booking = {
           id: booking.id,
-          destination: booking.destination,
+          destination: destination || null,
           userId: booking.userId,
-          startDate: booking.travelDate,
+          startDate: travelDate.toISOString(),
           endDate: returnDate.toISOString(),
-          departureDate: travelDate.toLocaleDateString('en-GB'), // dd/mm/yyyy
-          returnDate: returnDate.toLocaleDateString('en-GB'), // dd/mm/yyyy
-          guests: booking.numberOfTravelers || 1,
-          totalPrice: booking.totalPrice || 0,
-          status: booking.status?.toLowerCase() || 'pending',
+          departureDate: formatDate(travelDate), // dd/mm/yyyy
+          returnDate: formatDate(returnDate), // dd/mm/yyyy
+          guests: booking.numberOfTravelers || booking.guests || 1,
+          totalPrice: booking.totalPrice ? Number(booking.totalPrice) : 0,
+          status: (booking.status?.toLowerCase() || 'pending') as any,
           createdAt: booking.createdAt || booking.bookingDate || new Date().toISOString(),
           paymentMethod: booking.paymentMethod,
           specialRequests: Array.isArray(booking.specialRequests) 
             ? booking.specialRequests.join(', ') 
-            : booking.specialRequests || ''
-        } as Booking;
-      });
+            : (booking.specialRequests || '')
+        };
+        
+        bookings.push(transformedBooking);
+      }
       
-      console.log('✅ Transformed bookings:', bookings);
-      return bookings;
+      // Filter out bookings without destination (invalid bookings)
+      const validBookings = bookings.filter(b => b.destination != null);
+      if (validBookings.length < bookings.length) {
+        console.warn(`⚠️ Filtered out ${bookings.length - validBookings.length} bookings without destination`);
+      }
+      
+      return validBookings;
     } catch (error) {
       console.error('❌ getUserBookings error:', error);
       throw error;
