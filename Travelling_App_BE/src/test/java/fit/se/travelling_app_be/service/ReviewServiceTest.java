@@ -298,8 +298,9 @@ class ReviewServiceTest {
     void testDeleteReview_WhenExists() {
         // Given
         when(reviewRepository.findById(testReviewId)).thenReturn(Optional.of(testReview));
-        when(destinationRepository.findById(testDestinationId)).thenReturn(Optional.of(testDestination));
         when(reviewRepository.findByDestinationId(testDestinationId)).thenReturn(Arrays.asList());
+        // Note: updateDestinationRating is called but when reviews list is empty, 
+        // it doesn't call destinationRepository.findById
 
         // When
         reviewService.deleteReview(testReviewId);
@@ -307,6 +308,7 @@ class ReviewServiceTest {
         // Then
         verify(reviewRepository, times(1)).findById(testReviewId);
         verify(reviewRepository, times(1)).deleteById(testReviewId);
+        verify(reviewRepository, times(1)).findByDestinationId(testDestinationId);
     }
 
     @Test

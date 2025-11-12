@@ -48,7 +48,15 @@ class NotificationServiceTest {
     @Test
     void testCreateNotification_WithoutReminderType() {
         // Given
-        when(notificationRepository.save(any(Notification.class))).thenReturn(testNotification);
+        Notification expectedNotification = new Notification();
+        expectedNotification.setUserId(testUserId);
+        expectedNotification.setTitle("Test Title");
+        expectedNotification.setMessage("Test message");
+        when(notificationRepository.save(any(Notification.class))).thenAnswer(invocation -> {
+            Notification notif = invocation.getArgument(0);
+            expectedNotification.setId(testNotificationId);
+            return expectedNotification;
+        });
 
         // When
         Notification result = notificationService.createNotification(
@@ -66,7 +74,16 @@ class NotificationServiceTest {
     void testCreateNotification_WithReminderType() {
         // Given
         String reminderType = "upcoming-7d";
-        when(notificationRepository.save(any(Notification.class))).thenReturn(testNotification);
+        Notification expectedNotification = new Notification();
+        expectedNotification.setUserId(testUserId);
+        expectedNotification.setTitle("Test Title");
+        expectedNotification.setMessage("Test message");
+        expectedNotification.setReminderType(reminderType);
+        when(notificationRepository.save(any(Notification.class))).thenAnswer(invocation -> {
+            Notification notif = invocation.getArgument(0);
+            expectedNotification.setId(testNotificationId);
+            return expectedNotification;
+        });
 
         // When
         Notification result = notificationService.createNotification(
