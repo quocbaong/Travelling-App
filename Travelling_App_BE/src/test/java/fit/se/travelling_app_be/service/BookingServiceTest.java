@@ -2,6 +2,7 @@ package fit.se.travelling_app_be.service;
 
 import fit.se.travelling_app_be.entity.Booking;
 import fit.se.travelling_app_be.entity.Destination;
+import fit.se.travelling_app_be.model.Notification;
 import fit.se.travelling_app_be.repository.BookingRepository;
 import fit.se.travelling_app_be.repository.DestinationRepository;
 import org.bson.Document;
@@ -51,9 +52,9 @@ class BookingServiceTest {
 
     @BeforeEach
     void setUp() {
-        testBookingId = "test-booking-id";
-        testUserId = "test-user-id";
-        testDestinationId = "test-destination-id";
+        testBookingId = "507f1f77bcf86cd799439011"; // Valid 24-char ObjectId
+        testUserId = "507f1f77bcf86cd799439012"; // Valid 24-char ObjectId
+        testDestinationId = "507f1f77bcf86cd799439013"; // Valid 24-char ObjectId
 
         testDestination = new Destination();
         testDestination.setId(testDestinationId);
@@ -85,9 +86,10 @@ class BookingServiceTest {
         com.mongodb.client.FindIterable<Document> mockFindIterable = mock(com.mongodb.client.FindIterable.class);
         when(mockCollection.find(any(Document.class))).thenReturn(mockFindIterable);
         
-        doNothing().when(notificationService).createNotification(
+        Notification mockNotification = new Notification();
+        when(notificationService.createNotification(
             anyString(), anyString(), anyString(), anyString(), anyString()
-        );
+        )).thenReturn(mockNotification);
 
         // When
         Booking result = bookingService.createBooking(testBooking);
@@ -139,9 +141,10 @@ class BookingServiceTest {
         com.mongodb.client.FindIterable<Document> mockFindIterable = mock(com.mongodb.client.FindIterable.class);
         when(mockCollection.find(any(Document.class))).thenReturn(mockFindIterable);
         
-        doNothing().when(notificationService).createNotification(
+        Notification mockNotification = new Notification();
+        when(notificationService.createNotification(
             anyString(), anyString(), anyString(), anyString(), anyString()
-        );
+        )).thenReturn(mockNotification);
 
         // When
         Booking result = bookingService.createBooking(testBooking);
@@ -157,7 +160,9 @@ class BookingServiceTest {
         List<Document> bookingDocs = new ArrayList<>();
         Document bookingDoc = new Document("_id", new ObjectId(testBookingId))
             .append("userId", testUserId)
-            .append("status", "PENDING");
+            .append("status", "PENDING")
+            .append("destination", new Document("$ref", "destinations")
+                .append("$id", new ObjectId(testDestinationId)));
         bookingDocs.add(bookingDoc);
 
         @SuppressWarnings("unchecked")
@@ -167,14 +172,12 @@ class BookingServiceTest {
         
         when(mongoTemplate.getCollection("bookings")).thenReturn(mockCollection);
         when(mockCollection.find()).thenReturn(mockFindIterable);
-        ArrayList<Document> resultList = new ArrayList<>();
-        resultList.addAll(bookingDocs);
-        when(mockFindIterable.into(any(ArrayList.class))).thenAnswer(invocation -> {
-            ArrayList<Document> list = invocation.getArgument(0);
+        when(mockFindIterable.into(any(List.class))).thenAnswer(invocation -> {
+            List<Document> list = invocation.getArgument(0);
             list.addAll(bookingDocs);
             return list;
         });
-        when(destinationRepository.findById(anyString())).thenReturn(Optional.of(testDestination));
+        when(destinationRepository.findById(testDestinationId)).thenReturn(Optional.of(testDestination));
 
         // When
         List<Booking> result = bookingService.getAllBookings();
@@ -190,7 +193,9 @@ class BookingServiceTest {
         List<Document> bookingDocs = new ArrayList<>();
         Document bookingDoc = new Document("_id", new ObjectId(testBookingId))
             .append("userId", testUserId)
-            .append("status", "PENDING");
+            .append("status", "PENDING")
+            .append("destination", new Document("$ref", "destinations")
+                .append("$id", new ObjectId(testDestinationId)));
         bookingDocs.add(bookingDoc);
 
         @SuppressWarnings("unchecked")
@@ -200,12 +205,12 @@ class BookingServiceTest {
         
         when(mongoTemplate.getCollection("bookings")).thenReturn(mockCollection);
         when(mockCollection.find(any(Document.class))).thenReturn(mockFindIterable);
-        when(mockFindIterable.into(any(ArrayList.class))).thenAnswer(invocation -> {
-            ArrayList<Document> list = invocation.getArgument(0);
+        when(mockFindIterable.into(any(List.class))).thenAnswer(invocation -> {
+            List<Document> list = invocation.getArgument(0);
             list.addAll(bookingDocs);
             return list;
         });
-        when(destinationRepository.findById(anyString())).thenReturn(Optional.of(testDestination));
+        when(destinationRepository.findById(testDestinationId)).thenReturn(Optional.of(testDestination));
 
         // When
         List<Booking> result = bookingService.getBookingsByUserId(testUserId);
@@ -220,9 +225,6 @@ class BookingServiceTest {
         // Given
         when(bookingRepository.findById(testBookingId)).thenReturn(Optional.of(testBooking));
         when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
-        doNothing().when(notificationService).createNotification(
-            anyString(), anyString(), anyString(), anyString(), anyString()
-        );
 
         // When
         bookingService.cancelBooking(testBookingId);
