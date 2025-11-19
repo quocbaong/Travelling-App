@@ -27,6 +27,7 @@ const ReviewsScreen = () => {
   const { data: apiReviews = [], isLoading, refetch } = useReviewsByDestination(destinationId);
 
   // Combine API reviews, mock reviews, and user reviews
+  // Deduplicate by ID to avoid duplicate keys
   const reviews = React.useMemo(() => {
     const mockDestinationReviews = mockReviews.filter(review => 
       review.destinationId === destinationId
@@ -36,8 +37,33 @@ const ReviewsScreen = () => {
       review.destinationId === destinationId
     );
     
-    // Combine and sort by date (newest first)
-    const allReviews = [...apiReviews, ...mockDestinationReviews, ...userDestinationReviews]
+    // Combine all reviews and deduplicate by ID
+    // Priority: apiReviews > userReviews > mockReviews
+    const reviewsMap = new Map<string, Review>();
+    
+    // First add mock reviews (lowest priority)
+    mockDestinationReviews.forEach(review => {
+      if (review.id && !reviewsMap.has(review.id)) {
+        reviewsMap.set(review.id, review);
+      }
+    });
+    
+    // Then add user reviews (medium priority)
+    userDestinationReviews.forEach(review => {
+      if (review.id && !reviewsMap.has(review.id)) {
+        reviewsMap.set(review.id, review);
+      }
+    });
+    
+    // Finally add API reviews (highest priority - override duplicates)
+    apiReviews.forEach(review => {
+      if (review.id) {
+        reviewsMap.set(review.id, review);
+      }
+    });
+    
+    // Convert map values to array and sort by date (newest first)
+    const allReviews = Array.from(reviewsMap.values())
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     
     return allReviews;

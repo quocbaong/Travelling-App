@@ -18,6 +18,7 @@ import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { RootStackParamList, Booking, Review } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useCreateReview, useUserReviewForDestination } from '../api';
+import { useQueryClient } from '@tanstack/react-query';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type RouteProps = RouteProp<RootStackParamList, 'TourReview'>;
@@ -31,13 +32,20 @@ const TourReviewScreen = () => {
   // Use React Query hooks for reviews with caching
   const { data: existingReview } = useUserReviewForDestination(user?.id, booking?.destination?.id);
   const createReviewMutation = useCreateReview();
+  const queryClient = useQueryClient();
 
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Check if user has already reviewed this tour
+  // Check both React Query cache and local state
   const hasAlreadyReviewed = () => {
+    // First check React Query cache (most reliable, from backend)
+    if (existingReview) {
+      return true;
+    }
+    // Fallback to local state
     return userReviews.some(review => 
       review.destinationId === booking.destination?.id && 
       review.userId === user?.id
@@ -45,7 +53,13 @@ const TourReviewScreen = () => {
   };
 
   // Get existing review if user has already reviewed
+  // Priority: React Query cache > local state
   const getExistingReview = () => {
+    // First check React Query cache (from backend)
+    if (existingReview) {
+      return existingReview;
+    }
+    // Fallback to local state
     return userReviews.find(review => 
       review.destinationId === booking.destination?.id && 
       review.userId === user?.id
@@ -57,8 +71,8 @@ const TourReviewScreen = () => {
   };
 
   const handleSubmitReview = async () => {
-    // Check if user has already reviewed this tour
-    if (hasAlreadyReviewed()) {
+    // Check if user has already reviewed this tour (check both sources)
+    if (existingReview || hasAlreadyReviewed()) {
       Alert.alert(
         'Đã đánh giá',
         'Bạn đã đánh giá tour này rồi. Mỗi tour chỉ được đánh giá một lần.',
@@ -97,7 +111,8 @@ const TourReviewScreen = () => {
         comment: reviewText.trim(),
       });
 
-      // Add review to context for immediate UI update
+      // Add review to context for immediate UI update (but don't auto-create in backend)
+      // Note: addReview in AuthContext will NOT auto-create in backend anymore
       addReview(newReview);
 
       Alert.alert(
@@ -114,9 +129,47 @@ const TourReviewScreen = () => {
           },
         ]
       );
-    } catch (error) {
+      
+      // Reset form after success
+      setRating(0);
+      setReviewText('');
+    } catch (error: any) {
       console.error('Error creating review:', error);
-      Alert.alert('Lỗi', 'Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại.');
+      
+      // Handle specific error message from backend
+      // HttpClient throws error with message from backend ApiResponse
+      // Backend format: { success: false, message: "You have already reviewed..." }
+      const errorMessage = error?.message || 'Có lỗi xảy ra khi gửi đánh giá. Vui lòng thử lại.';
+      
+      // Check for duplicate review error (in both English and Vietnamese)
+      if (errorMessage.toLowerCase().includes('already reviewed') || 
+          errorMessage.toLowerCase().includes('đã đánh giá') ||
+          errorMessage.toLowerCase().includes('already exists')) {
+        
+        // Invalidate cache to refresh existingReview
+        if (user?.id && booking.destination?.id) {
+          queryClient.invalidateQueries({ 
+            queryKey: ['reviews', 'user', user.id, 'destination', booking.destination.id] 
+          });
+        }
+        
+        Alert.alert(
+          'Đã đánh giá',
+          'Bạn đã đánh giá tour này rồi. Mỗi tour chỉ được đánh giá một lần.',
+          [
+            {
+              text: 'Xem đánh giá',
+              onPress: () => navigation.navigate('Reviews', { destinationId: booking.destination?.id || '' }),
+            },
+            {
+              text: 'Quay lại',
+              onPress: () => navigation.goBack(),
+            },
+          ]
+        );
+      } else {
+        Alert.alert('Lỗi', errorMessage);
+      }
     } finally {
       setIsSubmitting(false);
     }

@@ -406,25 +406,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const addReview = async (review: Review) => {
-    setUserReviews(prev => [...prev, review]);
+    // Check if review already exists in local state to avoid duplicates
+    const reviewExists = userReviews.some(
+      r => r.destinationId === review.destinationId && r.userId === review.userId
+    );
     
-    // Also update backend if user is logged in
-    if (user) {
-      try {
-        await reviewService.createReview({
-          userId: user.id,
-          destinationId: review.destinationId,
-          rating: review.rating,
-          comment: review.comment,
-          images: review.images
-        });
-        
-        // Trigger data refresh to update ratings
-        loadUserData(user.id);
-      } catch (error) {
-        console.error('Failed to sync review to backend:', error);
-      }
+    if (!reviewExists) {
+      setUserReviews(prev => [...prev, review]);
     }
+    
+    // NOTE: Do NOT auto-create review in backend here
+    // Reviews should be created via TourReviewScreen using React Query mutation
+    // This prevents duplicate API calls and ensures proper error handling
   };
 
   const updateUserAvatar = async (avatarUrl: string) => {

@@ -98,6 +98,10 @@ export const useCreateReview = () => {
       // Invalidate reviews cache sau khi create thành công
       queryClient.invalidateQueries({ queryKey: ['reviews', 'destination', data.destinationId] });
       queryClient.invalidateQueries({ queryKey: ['reviews', 'user', data.userId] });
+      // Invalidate user review for destination cache
+      queryClient.invalidateQueries({ 
+        queryKey: ['reviews', 'user', data.userId, 'destination', data.destinationId] 
+      });
       // Invalidate destinations cache vì rating có thể thay đổi
       queryClient.invalidateQueries({ queryKey: ['destinations'] });
     },
