@@ -9,12 +9,29 @@ class DestinationService {
       console.log(`✅ Backend API success: ${result.length} destinations`);
       
       // Transform backend response to frontend format
-      const destinations: Destination[] = result.map((d: any) => ({
+      const transformedDestinations: Destination[] = result.map((d: any) => ({
         ...d,
         latitude: d.latitude ?? d.location?.latitude,
         longitude: d.longitude ?? d.location?.longitude,
         reviews: d.reviews ?? d.reviewCount ?? 0,
       }));
+      
+      // Deduplicate by ID to avoid duplicate keys in React
+      const destinationsMap = new Map<string, Destination>();
+      transformedDestinations.forEach(dest => {
+        if (dest.id) {
+          // If duplicate ID exists, keep the first one (or override with latest)
+          if (!destinationsMap.has(dest.id)) {
+            destinationsMap.set(dest.id, dest);
+          }
+        }
+      });
+      
+      const destinations = Array.from(destinationsMap.values());
+      
+      if (destinations.length !== transformedDestinations.length) {
+        console.warn(`⚠️ Found ${transformedDestinations.length - destinations.length} duplicate destinations, deduplicated to ${destinations.length}`);
+      }
       
       console.log(`📊 Sample backend destinations:`, destinations.slice(0, 3).map(d => ({ 
         name: d.name, 
@@ -32,7 +49,14 @@ class DestinationService {
         images: d.images?.length || 0, 
         imageUrl: d.imageUrl 
       })));
-      return mockDestinations;
+      // Deduplicate mock data too
+      const mockMap = new Map<string, Destination>();
+      mockDestinations.forEach(dest => {
+        if (dest.id && !mockMap.has(dest.id)) {
+          mockMap.set(dest.id, dest);
+        }
+      });
+      return Array.from(mockMap.values());
     }
   }
 
